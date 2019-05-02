@@ -1,4 +1,4 @@
-###Work in Progress
+#### Work in Progress
 
 Just a way to use rust and get a feel for the language.
 
