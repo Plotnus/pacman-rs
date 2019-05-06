@@ -140,74 +140,82 @@ fn main() {
     };
 
     while let Some(e) = window.next() {
+        // RESET FRAME VARS
+        gamestate.ready_to_process_turn = false;
+
         // INPUT
         if let Some(piston_button_event) = e.button_args() {
-            let input = parse_piston_input_event(piston_button_event);
-
-            let requested_move_direction = match input {
-                Input::Down => World::DOWN,
-                Input::Up => World::UP,
-                Input::Right => World::RIGHT,
-                Input::Left => World::LEFT,
-                _ => Vec2::new(0_f32, 0_f32),
-            };
-
-            // TODO: add check for requested move direction
-            gamestate.player.move_dir = requested_move_direction;
-            gamestate.ready_to_process_turn = input == Input::Step;
+            let optional_input = parse_piston_input_event(piston_button_event);
+            if let Some(input) = optional_input {
+                match input {
+                    Input::Down => gamestate.player.move_dir = World::DOWN,
+                    Input::Up => gamestate.player.move_dir = World::UP,
+                    Input::Right => gamestate.player.move_dir = World::RIGHT,
+                    Input::Left => gamestate.player.move_dir = World::LEFT,
+                    Input::Step => gamestate.ready_to_process_turn = true,
+                }
+            }
         }
 
         // UPDATE MODEL
         if gamestate.ready_to_process_turn {
-            gamestate = step_game(gamestate);
+            gamestate.player.position += gamestate.player.move_dir;
         }
 
         // UPDATE VIEW
         // update pixel buffers
-
         if let Some(_) = e.render_args() {
             //          texture.update(&mut window.encoder, &pixel_buffer).unwrap();
             window.draw_2d(&e, |c, g| {
                 let clear_color = [0.2, 0.2, 0.2, 1.0];
                 clear(clear_color, g);
                 // draw tiles
+                let grid = grid::Grid {cols: gamestate.board.width,
+                    rows: gamestate.board.height,
+                    units: (PIXELS_PER_TILE * WINDOW_SCALE) as f64,
+                };
+                let line = Line {
+                    color: [0.8, 0.8, 0.8, 1.0], // <--- grey
+                    radius: 0.5,
+                    shape: line::Shape::Round,
+                };
+                grid.draw(&line, &c.draw_state, c.transform, g);
                 // draw dots
                 // draw fruits
                 // draw score
                 // draw pacman
-                let pacman_yellow = [1.0, 1.0, 0.0, 1.0];
-                rectangle(
-                    pacman_yellow,
-                    [
-                        (gamestate.player.position.x * PIXELS_PER_TILE as f32) as f64,
-                        (gamestate.player.position.y * PIXELS_PER_TILE as f32) as f64,
-                        PIXELS_PER_TILE as f64,
-                        PIXELS_PER_TILE as f64,
-                    ],
-                    c.transform
-                        .trans(0.0, 0.0)
-                        .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64),
-                    g,
-                );
+                let color = [1.0, 1.0, 0.0, 0.5];
+                let rect = [
+                    gamestate.player.position.x as f64,
+                    gamestate.player.position.y as f64,
+                    PIXELS_PER_TILE as f64,
+                    PIXELS_PER_TILE as f64,
+                ];
+                let transform = c
+                    .transform
+                    .trans(0.0, 0.0)
+                    .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64);
+                rectangle(color, rect, transform, g);
+                gamestate.board.width;
+                gamestate.board.height;
+
                 // draw ghosts
                 //
             });
         }
+
+        // RESET FRAME VARIABLES
     }
 }
 
 struct World {}
 
+////////////////////////////////////////////////////////////////////////////////
 impl World {
     const LEFT: Vec2 = Vec2::new(-1_f32, 0_f32);
     const RIGHT: Vec2 = Vec2::new(1_f32, 0_f32);
     const UP: Vec2 = Vec2::new(0_f32, -1_f32);
     const DOWN: Vec2 = Vec2::new(0_f32, 1_f32);
-}
-
-fn step_game(mut gamestate: GameState) -> GameState {
-    gamestate.player.position += gamestate.player.move_dir;
-    gamestate
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -217,22 +225,23 @@ enum Input {
     Up,
     Left,
     Right,
-    None,
     Step,
 }
 
-fn parse_piston_input_event(button_args: piston_window::ButtonArgs) -> Input {
-    match button_args.state {
-        ButtonState::Press => match button_args.button {
-            Button::Keyboard(keyboard::Key::Up) => Input::Up,
-            Button::Keyboard(keyboard::Key::Down) => Input::Down,
-            Button::Keyboard(keyboard::Key::Left) => Input::Left,
-            Button::Keyboard(keyboard::Key::Right) => Input::Right,
-            Button::Keyboard(keyboard::Key::Space) => Input::Step,
-            _ => Input::None,
-        },
-        ButtonState::Release => Input::None,
+fn parse_piston_input_event(button_args: piston_window::ButtonArgs) -> Option<Input> {
+    if button_args.state == ButtonState::Press {
+        if let Button::Keyboard(key) = button_args.button {
+            return match key {
+                keyboard::Key::Up | keyboard::Key::Period => Some(Input::Up),
+                keyboard::Key::Left | keyboard::Key::O => Some(Input::Left),
+                keyboard::Key::Down | keyboard::Key::E => Some(Input::Down),
+                keyboard::Key::Right | keyboard::Key::U => Some(Input::Right),
+                keyboard::Key::Space => Some(Input::Step),
+                _ => None,
+            };
+        }
     }
+    None
 }
 
 // PixelPosition => TilePosition
