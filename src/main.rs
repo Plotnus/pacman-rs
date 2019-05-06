@@ -5,50 +5,12 @@ extern crate piston_window; // used for pixel_buffer and Texture
 
 use piston_window::*;
 
+mod board;
+use crate::board::*;
+
 type Vec2 = cgmath::Vector2<f32>;
 
 ////////////////////////////////////////////////////////////////////////////////////
-// COLORS
-//use rand::Rng;
-struct Color {
-    r: f32,
-    g: f32,
-    b: f32,
-    a: f32,
-}
-
-struct Rgb24 {
-    r: u8,
-    g: u8,
-    b: u8,
-}
-
-impl Color {
-    fn new() -> Color {
-        Color {
-            r: 0_f32,
-            g: 0_f32,
-            b: 0_f32,
-            a: 1_f32,
-        }
-    }
-
-    fn from_rgb24(rgb: Rgb24) -> Color {
-        let scale = 1_f32 / std::u8::MAX as f32;
-        Color {
-            r: rgb.r as f32 * scale,
-            g: rgb.g as f32 * scale,
-            b: rgb.b as f32 * scale,
-            a: 1_f32,
-        }
-    }
-
-    fn to_vec4(&self) -> [f32; 4] {
-        [self.r, self.g, self.b, self.a]
-    }
-}
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////
 // (x,y)----width----->
 //   |
 //   h
@@ -61,30 +23,6 @@ impl Color {
 //   |
 //   v
 
-struct Tile {
-    color: Color,
-    has_pellet: bool,
-    has_power_pellet: bool,
-    is_traversable: bool,
-}
-
-////////////////////////////////////////////////////////////////////////////////
-struct Board {
-    tiles: Vec<Tile>,
-    width: u32,
-    height: u32,
-}
-
-impl Board {
-    fn new(width: u32, height: u32) -> Board {
-        let tiles: Vec<Tile> = Vec::new();
-        Board {
-            tiles,
-            width,
-            height,
-        }
-    }
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 struct CharacterState {
@@ -102,10 +40,10 @@ const PIXELS_PER_TILE: u32 = 8;
 const WINDOW_SCALE: u32 = 3;
 
 fn main() {
-    let board = Board::new(28, 31);
+    let board = Board::new();
 
-    let num_px_wide = board.width * PIXELS_PER_TILE * WINDOW_SCALE;
-    let num_px_high = board.height * PIXELS_PER_TILE * WINDOW_SCALE;
+    let num_px_wide = board.width as u32 * PIXELS_PER_TILE * WINDOW_SCALE;
+    let num_px_high = board.height as u32 * PIXELS_PER_TILE * WINDOW_SCALE;
     let window_size = (num_px_wide, num_px_high);
 
     let mut window: PistonWindow = WindowSettings::new("p a c m a n", window_size)
@@ -116,19 +54,12 @@ fn main() {
         .build()
         .unwrap();
 
-    // create texture for the pixel buffer
-    //    let /*mut*/ pixel_buffer = image::ImageBuffer::new(width, height);
-    //    let mut texture: G2dTexture = Texture::from_image(
-    //        &mut window.factory,
-    //        &pixel_buffer,
-    //        &TextureSettings::new()
-    //            .min(Filter::Linear)
-    //            .mag(Filter::Linear)
-    //            .mipmap(Filter::Nearest),
-    //    )
-    //    .unwrap();
+    let player_start = Vec2::new(
+        (board.width / 2 * PIXELS_PER_TILE) as f32,
+        ((board.height - 8) * PIXELS_PER_TILE) as f32
+    );
     let player = CharacterState {
-        position: Vec2::new(0_f32, 0_f32),
+        position: player_start,
         move_dir: Vec2::new(0_f32, 0_f32),
     };
 
@@ -186,13 +117,46 @@ fn main() {
         }
 
         // UPDATE VIEW
-        // update pixel buffers
         if let Some(_) = e.render_args() {
             //          texture.update(&mut window.encoder, &pixel_buffer).unwrap();
             window.draw_2d(&e, |c, g| {
                 let clear_color = [0.2, 0.2, 0.2, 1.0];
                 clear(clear_color, g);
-                // draw tiles
+
+                // draw board
+                let board = &gamestate.board;
+                for row in 0..board.height {
+                    for col in 0..board.width {
+                        if let Some(tile) = board.tile_from_row_and_col(row,col) {
+                            let wall_color = [0.0, 0.0, 0.8, 1.0];
+                            let traversable_color = [0.0,0.0,0.0,1.0];
+                            let color = if tile.is_traversable {
+                                wall_color
+                            } else {
+                                traversable_color
+                            };
+                            let x_pos = col * PIXELS_PER_TILE;
+                            let y_pos = row * PIXELS_PER_TILE;
+                            let rect = [
+                                x_pos as  f64,
+                                y_pos as f64,
+                                PIXELS_PER_TILE as f64,
+                                PIXELS_PER_TILE as f64,
+                            ];
+                            let transform = c
+                                .transform
+                                .trans(0.0, 0.0)
+                                .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64);
+                            rectangle(color, rect, transform, g);
+                        }
+                        else {
+                            println!("failed to get tile for (row,col): ({},{})",row,col);
+                            assert!(false);
+                        }
+                    }
+                }
+
+                // draw grid
                 let grid = grid::Grid {cols: gamestate.board.width,
                     rows: gamestate.board.height,
                     units: (PIXELS_PER_TILE * WINDOW_SCALE) as f64,
@@ -206,7 +170,8 @@ fn main() {
                 // draw dots
                 // draw fruits
                 // draw score
-                // draw pacman
+                // draw player
+                // body
                 let color = [1.0, 1.0, 0.0, 0.5];
                 let rect = [
                     gamestate.player.position.x as f64,
@@ -219,8 +184,15 @@ fn main() {
                     .trans(0.0, 0.0)
                     .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64);
                 rectangle(color, rect, transform, g);
-                gamestate.board.width;
-                gamestate.board.height;
+                // pixel position
+                let color = [1.0, 0.0, 0.0, 1.0];
+                let rect = [
+                    gamestate.player.position.x as f64,
+                    gamestate.player.position.y as f64,
+                    1.0,
+                    1.0,
+                ];
+                rectangle(color, rect, transform, g);
 
                 // draw ghosts
                 //
