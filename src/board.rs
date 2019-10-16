@@ -1,43 +1,47 @@
 //
 // P = power pellet
 // p = pellet
-// S = pac_start
+// S = ghost
+// p = pacman
+// we can chack in O(1) if pacman is on pellet with table lookup
+// we can check in O(1) if pacman is on fruit
+// we can check in O(1) if pacman has collided with ghost
 // G = ghost_pen
 // C = clyde start
 // B = blinky start
 const MAZE_DEF: &str = "\
-_XXXXXXXXXXXXXXXXXXXXXXXXXXXX\
-_X............XX............X\
-_X.XXXX.XXXXX.XX.XXXXX.XXXX.X\
-_XoXXXX.XXXXX.XX.XXXXX.XXXXoX\
-_X.XXXX.XXXXX.XX.XXXXX.XXXX.X\
-_X..........................X\
-_X.XXXX.XX.XXXXXXXX.XX.XXXX.X\
-_X.XXXX.XX.XXXXXXXX.XX.XXXX.X\
-_X......XX....XX....XX......X\
-_XXXXXX.XXXXX XX XXXXX.XXXXXX\
-_XXXXXX.XXXXX XX XXXXX.XXXXXX\
-_XXXXXX.XX          XX.XXXXXX\
-_XXXXXX.XX XXX--XXX XX.XXXXXX\
-_XXXXXX.XX X      X XX.XXXXXX\
-_      .   X      X   .      \
-_XXXXXX.XX X      X XXXXXXXXX\
-_XXXXXX.XX XXXXXXXX XXXXXXXXX\
-_XXXXXX.XX          XXXXXXXXX\
-_XXXXXX.XX XXXXXXXX XXXXXXXXX\
-_XXXXXX.XX XXXXXXXX XXXXXXXXX\
-_X............  ............X\
-_X.XXXX.XXXXX.XX.XXXXXXXXXX.X\
-_X.XXXX.XXXXX.XX.XXXXXXXXXX.X\
-_Xo..XX.......  .......XX..oX\
-_XXX.XX.XX.XXXXXXXX.XX.XX.XXX\
-_XXX.XX.XX.XXXXXXXX.XX.XX.XXX\
-_X......XX....XX....XX......X\
-_X.XXXXXXXXXX.XX.XXXXXXXXXX.X\
-_X.XXXXXXXXXX.XX.XXXXXXXXXX.X\
-_X..........................X\
-_XXXXXXXXXXXXXXXXXXXXXXXXXXXX\
-";
+                        _XXXXXXXXXXXXXXXXXXXXXXXXXXXX\
+                        _X............XX............X\
+                        _X.XXXX.XXXXX.XX.XXXXX.XXXX.X\
+                        _XoXXXX.XXXXX.XX.XXXXX.XXXXoX\
+                        _X.XXXX.XXXXX.XX.XXXXX.XXXX.X\
+                        _X..........................X\
+                        _X.XXXX.XX.XXXXXXXX.XX.XXXX.X\
+                        _X.XXXX.XX.XXXXXXXX.XX.XXXX.X\
+                        _X......XX....XX....XX......X\
+                        _XXXXXX.XXXXX XX XXXXX.XXXXXX\
+                        _XXXXXX.XXXXX XX XXXXX.XXXXXX\
+                        _XXXXXX.XX          XX.XXXXXX\
+                        _XXXXXX.XX XXX--XXX XX.XXXXXX\
+                        _XXXXXX.XX X      X XX.XXXXXX\
+                        _      .   X      X   .      \
+                        _XXXXXX.XX X      X XXXXXXXXX\
+                        _XXXXXX.XX XXXXXXXX XXXXXXXXX\
+                        _XXXXXX.XX          XXXXXXXXX\
+                        _XXXXXX.XX XXXXXXXX XXXXXXXXX\
+                        _XXXXXX.XX XXXXXXXX XXXXXXXXX\
+                        _X............  ............X\
+                        _X.XXXX.XXXXX.XX.XXXXXXXXXX.X\
+                        _X.XXXX.XXXXX.XX.XXXXXXXXXX.X\
+                        _Xo..XX.......  .......XX..oX\
+                        _XXX.XX.XX.XXXXXXXX.XX.XX.XXX\
+                        _XXX.XX.XX.XXXXXXXX.XX.XX.XXX\
+                        _X......XX....XX....XX......X\
+                        _X.XXXXXXXXXX.XX.XXXXXXXXXX.X\
+                        _X.XXXXXXXXXX.XX.XXXXXXXXXX.X\
+                        _X..........................X\
+                        _XXXXXXXXXXXXXXXXXXXXXXXXXXXX\
+                        ";
 ////////////////////////////////////////////////////////////////////////////////
 pub struct Tile {
     pub has_pellet: bool,
@@ -59,17 +63,25 @@ impl Board {
         let height = 31;
         tiles.reserve(width * height);
         for c in MAZE_DEF.chars() {
-            if c == '_' { continue ;}
+            if c == '_' {
+                continue;
+            }
             let is_traversable = c == 'X';
             let has_pellet = c == '.';
             let has_power_pellet = c == 'o';
             let tile = Tile {
-                has_pellet, has_power_pellet, is_traversable
+                has_pellet,
+                has_power_pellet,
+                is_traversable,
             };
             tiles.push(tile);
         }
 
-        Board { tiles, width: width as u32, height: height as u32}
+        Board {
+            tiles,
+            width: width as u32,
+            height: height as u32,
+        }
     }
 
     pub fn tile_from_row_and_col(&self, row: u32, col: u32) -> Option<&Tile> {

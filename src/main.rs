@@ -1,7 +1,7 @@
 // TODO find way to get rid of image
 extern crate cgmath;
 extern crate image;
-extern crate piston_window; // used for pixel_buffer and Texture
+extern crate piston_window;
 
 use piston_window::*;
 
@@ -23,7 +23,6 @@ type Vec2 = cgmath::Vector2<f32>;
 //   |
 //   v
 
-
 ////////////////////////////////////////////////////////////////////////////////
 struct CharacterState {
     position: Vec2,
@@ -42,13 +41,13 @@ const WINDOW_SCALE: u32 = 3;
 fn main() {
     let board = Board::new();
 
-    let num_px_wide = board.width as u32 * PIXELS_PER_TILE * WINDOW_SCALE;
-    let num_px_high = board.height as u32 * PIXELS_PER_TILE * WINDOW_SCALE;
+    let num_px_wide = board.width * PIXELS_PER_TILE * WINDOW_SCALE;
+    let num_px_high = board.height * PIXELS_PER_TILE * WINDOW_SCALE;
     let window_size = (num_px_wide, num_px_high);
 
     let mut window: PistonWindow = WindowSettings::new("p a c m a n", window_size)
         .exit_on_esc(true)
-        .opengl(OpenGL::V3_2)
+        .graphics_api(Api::opengl(3, 2))
         .resizable(false)
         .decorated(true)
         .build()
@@ -56,7 +55,7 @@ fn main() {
 
     let player_start = Vec2::new(
         (board.width / 2 * PIXELS_PER_TILE) as f32,
-        ((board.height - 8) * PIXELS_PER_TILE) as f32
+        ((board.height - 8) * PIXELS_PER_TILE) as f32,
     );
     let player = CharacterState {
         position: player_start,
@@ -119,7 +118,7 @@ fn main() {
         // UPDATE VIEW
         if let Some(_) = e.render_args() {
             //          texture.update(&mut window.encoder, &pixel_buffer).unwrap();
-            window.draw_2d(&e, |c, g| {
+            window.draw_2d(&e, |context, g, _| {
                 let clear_color = [0.2, 0.2, 0.2, 1.0];
                 clear(clear_color, g);
 
@@ -127,9 +126,9 @@ fn main() {
                 let board = &gamestate.board;
                 for row in 0..board.height {
                     for col in 0..board.width {
-                        if let Some(tile) = board.tile_from_row_and_col(row,col) {
+                        if let Some(tile) = board.tile_from_row_and_col(row, col) {
                             let wall_color = [0.0, 0.0, 0.8, 1.0];
-                            let traversable_color = [0.0,0.0,0.0,1.0];
+                            let traversable_color = [0.0, 0.0, 0.0, 1.0];
                             let color = if tile.is_traversable {
                                 wall_color
                             } else {
@@ -138,26 +137,25 @@ fn main() {
                             let x_pos = col * PIXELS_PER_TILE;
                             let y_pos = row * PIXELS_PER_TILE;
                             let rect = [
-                                x_pos as  f64,
+                                x_pos as f64,
                                 y_pos as f64,
                                 PIXELS_PER_TILE as f64,
                                 PIXELS_PER_TILE as f64,
                             ];
-                            let transform = c
+                            let transform = context
                                 .transform
-                                .trans(0.0, 0.0)
                                 .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64);
                             rectangle(color, rect, transform, g);
-                        }
-                        else {
-                            println!("failed to get tile for (row,col): ({},{})",row,col);
+                        } else {
+                            println!("failed to get tile for (row,col): ({},{})", row, col);
                             assert!(false);
                         }
                     }
                 }
 
                 // draw grid
-                let grid = grid::Grid {cols: gamestate.board.width,
+                let grid = grid::Grid {
+                    cols: gamestate.board.width,
                     rows: gamestate.board.height,
                     units: (PIXELS_PER_TILE * WINDOW_SCALE) as f64,
                 };
@@ -166,33 +164,47 @@ fn main() {
                     radius: 0.5,
                     shape: line::Shape::Round,
                 };
-                grid.draw(&line, &c.draw_state, c.transform, g);
+                grid.draw(&line, &context.draw_state, context.transform, g);
                 // draw dots
                 // draw fruits
                 // draw score
-                // draw player
-                // body
-                let color = [1.0, 1.0, 0.0, 0.5];
-                let rect = [
-                    gamestate.player.position.x as f64,
-                    gamestate.player.position.y as f64,
-                    PIXELS_PER_TILE as f64,
-                    PIXELS_PER_TILE as f64,
-                ];
-                let transform = c
-                    .transform
-                    .trans(0.0, 0.0)
-                    .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64);
-                rectangle(color, rect, transform, g);
-                // pixel position
-                let color = [1.0, 0.0, 0.0, 1.0];
-                let rect = [
-                    gamestate.player.position.x as f64,
-                    gamestate.player.position.y as f64,
-                    1.0,
-                    1.0,
-                ];
-                rectangle(color, rect, transform, g);
+                {
+                    // draw player
+                    let x = gamestate.player.position.x as f64;
+                    let y = gamestate.player.position.y as f64;
+                    let shift = PIXELS_PER_TILE as f64 * 0.5;
+                    // body
+                    let color = [1.0, 1.0, 0.0, 0.5];
+                    let rect = [
+                        x - shift,
+                        y - shift,
+                        PIXELS_PER_TILE as f64,
+                        PIXELS_PER_TILE as f64,
+                    ];
+                    let transform = context
+                        .transform
+                        .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64);
+                    rectangle(color, rect, transform, g);
+                    // direction signifier
+                    let line = Line {
+                        color: [0.0, 0.0, 0.0, 1.0],
+                        radius: 1.0,
+                        shape: line::Shape::Round,
+                    };
+                    let a = [x + 1.0, y, x - 1.0, y - 1.0];
+                    let b = [x - 1.0, y - 1.0, x - 1.0, y + 1.0];
+                    let c = [x - 1.0, y + 1.0, x + 1.0, y];
+                    let t = context
+                        .transform
+                        .scale(1.5 * WINDOW_SCALE as f64, 1.5 * WINDOW_SCALE as f64);
+                    line.draw_tri(a, &context.draw_state, t, g);
+                    line.draw_tri(b, &context.draw_state, t, g);
+                    line.draw_tri(c, &context.draw_state, t, g);
+                    // pixel position
+                    let color = [1.0, 0.0, 0.0, 1.0];
+                    let rect = [x, y, 1.0, 1.0];
+                    rectangle(color, rect, transform, g);
+                }
 
                 // draw ghosts
                 //
