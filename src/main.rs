@@ -127,13 +127,24 @@ fn main() {
                 for row in 0..board.height {
                     for col in 0..board.width {
                         if let Some(tile) = board.tile_from_row_and_col(row, col) {
-                            let wall_color = [0.0, 0.0, 0.8, 1.0];
-                            let traversable_color = [0.0, 0.0, 0.0, 1.0];
-                            let color = if tile.is_traversable {
-                                wall_color
-                            } else {
-                                traversable_color
+                            // get the color for the tile
+                            let traversable_color = [0.0, 0.0, 0.8, 1.0];
+                            let default_color = [0.0, 0.0, 0.0, 1.0];
+                            let color = if !tile.is_traversable {
+                                if tile.is_tunnel {
+                                    [ traversable_color[0] * 0.5,
+                                      traversable_color[1] * 0.5,
+                                      traversable_color[2] * 0.5,
+                                      traversable_color[3],
+                                    ]
+                                } else {
+                                    traversable_color
+                                }
+                            }
+                             else {
+                                default_color
                             };
+
                             let x_pos = col * PIXELS_PER_TILE;
                             let y_pos = row * PIXELS_PER_TILE;
                             let rect = [

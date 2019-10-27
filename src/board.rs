@@ -1,52 +1,47 @@
 //
-// P = power pellet
-// p = pellet
-// S = ghost
-// p = pacman
-// we can chack in O(1) if pacman is on pellet with table lookup
-// we can check in O(1) if pacman is on fruit
-// we can check in O(1) if pacman has collided with ghost
-// G = ghost_pen
-// C = clyde start
-// B = blinky start
+// X = wall
+// . = pellet
+// o = power pellet
+// t = tunnel
 const MAZE_DEF: &str = "\
-                        _XXXXXXXXXXXXXXXXXXXXXXXXXXXX\
-                        _X............XX............X\
-                        _X.XXXX.XXXXX.XX.XXXXX.XXXX.X\
-                        _XoXXXX.XXXXX.XX.XXXXX.XXXXoX\
-                        _X.XXXX.XXXXX.XX.XXXXX.XXXX.X\
-                        _X..........................X\
-                        _X.XXXX.XX.XXXXXXXX.XX.XXXX.X\
-                        _X.XXXX.XX.XXXXXXXX.XX.XXXX.X\
-                        _X......XX....XX....XX......X\
-                        _XXXXXX.XXXXX XX XXXXX.XXXXXX\
-                        _XXXXXX.XXXXX XX XXXXX.XXXXXX\
-                        _XXXXXX.XX          XX.XXXXXX\
-                        _XXXXXX.XX XXX--XXX XX.XXXXXX\
-                        _XXXXXX.XX X      X XX.XXXXXX\
-                        _      .   X      X   .      \
-                        _XXXXXX.XX X      X XXXXXXXXX\
-                        _XXXXXX.XX XXXXXXXX XXXXXXXXX\
-                        _XXXXXX.XX          XXXXXXXXX\
-                        _XXXXXX.XX XXXXXXXX XXXXXXXXX\
-                        _XXXXXX.XX XXXXXXXX XXXXXXXXX\
-                        _X............  ............X\
-                        _X.XXXX.XXXXX.XX.XXXXXXXXXX.X\
-                        _X.XXXX.XXXXX.XX.XXXXXXXXXX.X\
-                        _Xo..XX.......  .......XX..oX\
-                        _XXX.XX.XX.XXXXXXXX.XX.XX.XXX\
-                        _XXX.XX.XX.XXXXXXXX.XX.XX.XXX\
-                        _X......XX....XX....XX......X\
-                        _X.XXXXXXXXXX.XX.XXXXXXXXXX.X\
-                        _X.XXXXXXXXXX.XX.XXXXXXXXXX.X\
-                        _X..........................X\
-                        _XXXXXXXXXXXXXXXXXXXXXXXXXXXX\
-                        ";
+                    XXXXXXXXXXXXXXXXXXXXXXXXXXXX\
+                    X............XX............X\
+                    X.XXXX.XXXXX.XX.XXXXX.XXXX.X\
+                    XoXXXX.XXXXX.XX.XXXXX.XXXXoX\
+                    X.XXXX.XXXXX.XX.XXXXX.XXXX.X\
+                    X..........................X\
+                    X.XXXX.XX.XXXXXXXX.XX.XXXX.X\
+                    X.XXXX.XX.XXXXXXXX.XX.XXXX.X\
+                    X......XX....XX....XX......X\
+                    XXXXXX.XXXXX XX XXXXX.XXXXXX\
+                    XXXXXX.XXXXX XX XXXXX.XXXXXX\
+                    XXXXXX.XX          XX.XXXXXX\
+                    XXXXXX.XX XXX--XXX XX.XXXXXX\
+                    XXXXXX.XX X      X XX.XXXXXX\
+                    tttttt.   X      X   .tttttt\
+                    XXXXXX.XX X      X XXXXXXXXX\
+                    XXXXXX.XX XXXXXXXX XXXXXXXXX\
+                    XXXXXX.XX          XXXXXXXXX\
+                    XXXXXX.XX XXXXXXXX XXXXXXXXX\
+                    XXXXXX.XX XXXXXXXX XXXXXXXXX\
+                    X............  ............X\
+                    X.XXXX.XXXXX.XX.XXXXXXXXXX.X\
+                    X.XXXX.XXXXX.XX.XXXXXXXXXX.X\
+                    Xo..XX.......  .......XX..oX\
+                    XXX.XX.XX.XXXXXXXX.XX.XX.XXX\
+                    XXX.XX.XX.XXXXXXXX.XX.XX.XXX\
+                    X......XX....XX....XX......X\
+                    X.XXXXXXXXXX.XX.XXXXXXXXXX.X\
+                    X.XXXXXXXXXX.XX.XXXXXXXXXX.X\
+                    X..........................X\
+                    XXXXXXXXXXXXXXXXXXXXXXXXXXXX\
+                    ";
 ////////////////////////////////////////////////////////////////////////////////
 pub struct Tile {
     pub has_pellet: bool,
     pub has_power_pellet: bool,
     pub is_traversable: bool,
+    pub is_tunnel: bool,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,16 +58,16 @@ impl Board {
         let height = 31;
         tiles.reserve(width * height);
         for c in MAZE_DEF.chars() {
-            if c == '_' {
-                continue;
-            }
             let is_traversable = c == 'X';
             let has_pellet = c == '.';
             let has_power_pellet = c == 'o';
+            let is_tunnel = c == 't';
+            if is_tunnel { println!("has tunnel");}
             let tile = Tile {
                 has_pellet,
                 has_power_pellet,
                 is_traversable,
+                is_tunnel,
             };
             tiles.push(tile);
         }
