@@ -35,15 +35,15 @@ struct GameState {
     ready_to_process_turn: bool,
 }
 
-const PIXELS_PER_TILE: u32 = 8;
-const WINDOW_SCALE: u32 = 3;
+const PIXELS_PER_TILE: usize = 8;
+const WINDOW_SCALE: usize = 3;
 
 fn main() {
     let board = Board::new();
 
     let num_px_wide = board.width * PIXELS_PER_TILE * WINDOW_SCALE;
     let num_px_high = board.height * PIXELS_PER_TILE * WINDOW_SCALE;
-    let window_size = (num_px_wide, num_px_high);
+    let window_size = (num_px_wide as u32, num_px_high as u32);
 
     let mut window: PistonWindow = WindowSettings::new("p a c m a n", window_size)
         .exit_on_esc(true)
@@ -124,83 +124,85 @@ fn main() {
 
                 // draw board
                 let board = &gamestate.board;
-                for row in 0..board.height {
-                    for col in 0..board.width {
-                        if let Some(tile) = board.tile_from_row_and_col(row, col) {
-                            // get the color for the tile
-                            let black = [0.0, 0.0, 0.0, 1.0];
-                            let tunnel_color = [0.2, 0.2, 0.2, 1.0];
-                            let wall_color = [0.0, 0.0, 0.5, 1.0];
-                            let color = if !tile.is_traversable {
-                                wall_color
-                            } else if tile.is_tunnel {
-                                tunnel_color
-                            } else {
-                                black
-                            };
+                for h in 0..board.tiles.len() {
+                    // get the color for the tile
+                    let tile = board.get_tile(h);
+                    let tile_board_pos = board.get_board_pos_of_tile(h);
 
-                            // this is constant for all tiles
-                            const TILE_EXTENTS: Vec2 = Vec2 {
-                                x: PIXELS_PER_TILE as f32 * 0.5,
-                                y: PIXELS_PER_TILE as f32 * 0.5,
-                            };
-                            let tile_pos = Vec2 {
-                                x: col as f32 * PIXELS_PER_TILE as f32,
-                                y: row as f32 * PIXELS_PER_TILE as f32,
-                            };
-                            let rect = [ tile_pos.x as f64, tile_pos.y as f64, TILE_EXTENTS.x as f64 * 2.0, TILE_EXTENTS.y as f64 * 2.0 ];
-                            let transform = context
-                                .transform
-                                .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64);
+                    let black = [0.0, 0.0, 0.0, 1.0];
+                    let tunnel_color = [0.2, 0.2, 0.2, 1.0];
+                    let wall_color = [0.0, 0.0, 0.5, 1.0];
+                    let color = if !tile.is_traversable {
+                        wall_color
+                    } else if tile.is_tunnel {
+                        tunnel_color
+                    } else {
+                        black
+                    };
 
-                            // draw tile
-                            rectangle(color, rect, transform, g);
+                    // this is constant for all tiles
+                    const TILE_EXTENTS: Vec2 = Vec2 {
+                        x: PIXELS_PER_TILE as f32 * 0.5,
+                        y: PIXELS_PER_TILE as f32 * 0.5,
+                    };
 
-                            // draw pellet if there is one
-                            if tile.has_pellet {
-                                // draw a PELLET
-                                const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
-                                let pellet_extents = TILE_EXTENTS * 0.25;
-                                let pellet_pos = tile_pos + TILE_EXTENTS - pellet_extents;
-                                let pellet = Ellipse::new(PELLET_COLOR);
-                                let rect: [f64;4] = [
-                                    pellet_pos.x as f64,
-                                    pellet_pos.y as f64,
-                                    pellet_extents.x as f64 * 2.0,
-                                    pellet_extents.y as f64 * 2.0,
-                                ];
+                    let tile_pos = Vec2 {
+                        x: tile_board_pos.x as f32 * PIXELS_PER_TILE as f32,
+                        y: tile_board_pos.y as f32 * PIXELS_PER_TILE as f32,
+                    };
+                    let rect = [
+                        tile_pos.x as f64,
+                        tile_pos.y as f64,
+                        TILE_EXTENTS.x as f64 * 2.0,
+                        TILE_EXTENTS.y as f64 * 2.0
+                    ];
+                    let transform = context
+                        .transform
+                        .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64);
 
-                                pellet.draw(rect, &Default::default(), transform, g);
-                            }
-                            if tile.has_power_pellet {
-                                // draw a POWER_PELLET
-                                // - the only thing that changes here is `scale`
-                                //   everything else is the same as draing pellet.
-                                //   good candidate to pull out
-                                const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
-                                let pellet_extents = TILE_EXTENTS * 0.5;
-                                let pellet_pos = tile_pos + TILE_EXTENTS - pellet_extents;
-                                let pellet = Ellipse::new(PELLET_COLOR);
-                                let rect: [f64;4] = [
-                                    pellet_pos.x as f64,
-                                    pellet_pos.y as f64,
-                                    pellet_extents.x as f64 * 2.0,
-                                    pellet_extents.y as f64 * 2.0,
-                                ];
+                    // draw tile
+                    rectangle(color, rect, transform, g);
 
-                                pellet.draw(rect, &Default::default(), transform, g);
-                            }
-                        } else {
-                            println!("failed to get tile for (row,col): ({},{})", row, col);
-                            assert!(false);
-                        }
+                    // draw pellet if there is one
+                    if tile.has_pellet {
+                        // draw a PELLET
+                        const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
+                        let pellet_extents = TILE_EXTENTS * 0.25;
+                        let pellet_pos = tile_pos + TILE_EXTENTS - pellet_extents;
+                        let pellet = Ellipse::new(PELLET_COLOR);
+                        let rect: [f64;4] = [
+                            pellet_pos.x as f64,
+                            pellet_pos.y as f64,
+                            pellet_extents.x as f64 * 2.0,
+                            pellet_extents.y as f64 * 2.0,
+                        ];
+
+                        pellet.draw(rect, &Default::default(), transform, g);
+                    }
+                    if tile.has_power_pellet {
+                        // draw a POWER_PELLET
+                        // - the only thing that changes here is `scale`
+                        //   everything else is the same as draing pellet.
+                        //   good candidate to pull out
+                        const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
+                        let pellet_extents = TILE_EXTENTS * 0.5;
+                        let pellet_pos = tile_pos + TILE_EXTENTS - pellet_extents;
+                        let pellet = Ellipse::new(PELLET_COLOR);
+                        let rect: [f64;4] = [
+                            pellet_pos.x as f64,
+                            pellet_pos.y as f64,
+                            pellet_extents.x as f64 * 2.0,
+                            pellet_extents.y as f64 * 2.0,
+                        ];
+
+                        pellet.draw(rect, &Default::default(), transform, g);
                     }
                 }
 
                 // draw grid
                 let grid = grid::Grid {
-                    cols: gamestate.board.width,
-                    rows: gamestate.board.height,
+                    cols: gamestate.board.width as u32,
+                    rows: gamestate.board.height as u32,
                     units: (PIXELS_PER_TILE * WINDOW_SCALE) as f64,
                 };
                 let line = Line {

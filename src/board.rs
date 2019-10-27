@@ -47,8 +47,14 @@ pub struct Tile {
 ////////////////////////////////////////////////////////////////////////////////
 pub struct Board {
     pub tiles: Vec<Tile>,
-    pub width: u32,
-    pub height: u32,
+    pub width: usize,
+    pub height: usize,
+}
+// tiles have a board position
+// this is different than pixel position
+pub struct BoardPos {
+    pub x: usize,
+    pub y: usize,
 }
 
 impl Board {
@@ -69,14 +75,22 @@ impl Board {
 
         Board {
             tiles,
-            width: width as u32,
-            height: height as u32,
+            width: width,
+            height: height,
         }
     }
 
-    pub fn tile_from_row_and_col(&self, row: u32, col: u32) -> Option<&Tile> {
-        assert!(row < self.height && col < self.width);
-        let index = (row * self.width + col) as usize;
-        self.tiles.get(index)
+    pub fn get_tile(&self, h: usize) -> &Tile {
+        assert!(h < self.tiles.len());
+        &self.tiles[h]
+    }
+
+    pub fn get_board_pos_of_tile(&self, h: usize) ->  BoardPos {
+        assert!(h < self.tiles.len());
+        BoardPos {
+            x: h % self.width,
+            y: h / self.width,
+        }
+
     }
 }
