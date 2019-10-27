@@ -155,7 +155,15 @@ fn main() {
                             if tile.has_pellet {
                                 let color = [0.8,0.8,0.8,1.0];
                                 let pellet = Ellipse::new(color);
-                                let rect = [rect[0], rect[1], rect[2]*0.25, rect[3] * 0.25];
+                                let scale = 0.25;
+                                let rect = [rect[0], rect[1], rect[2]*scale, rect[3] * scale];
+                                pellet.draw(rect, &Default::default(), transform, g);
+                            }
+                            if tile.has_power_pellet {
+                                let color = [0.8,0.8,0.8,1.0];
+                                let pellet = Ellipse::new(color);
+                                let scale = 0.5;
+                                let rect = [rect[0], rect[1], rect[2]*scale, rect[3] * scale];
                                 pellet.draw(rect, &Default::default(), transform, g);
                             }
                         } else {
