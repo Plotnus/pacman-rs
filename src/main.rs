@@ -132,7 +132,7 @@ fn main() {
                             let tunnel_color = [0.2, 0.2, 0.2, 1.0];
                             let wall_color = [0.0, 0.0, 0.5, 1.0];
                             let color = if !tile.is_traversable {
-                                wall_color //wall_color
+                                wall_color
                             } else if tile.is_tunnel {
                                 tunnel_color
                             } else {
