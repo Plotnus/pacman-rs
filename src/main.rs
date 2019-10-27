@@ -49,7 +49,7 @@ fn main() {
         .exit_on_esc(true)
         .graphics_api(Api::opengl(3, 2))
         .resizable(false)
-        .decorated(true)
+        .decorated(false)
         .build()
         .unwrap();
 
