@@ -58,16 +58,11 @@ impl Board {
         let height = 31;
         tiles.reserve(width * height);
         for c in MAZE_DEF.chars() {
-            let is_traversable = c == 'X';
-            let has_pellet = c == '.';
-            let has_power_pellet = c == 'o';
-            let is_tunnel = c == 't';
-            if is_tunnel { println!("has tunnel");}
             let tile = Tile {
-                has_pellet,
-                has_power_pellet,
-                is_traversable,
-                is_tunnel,
+                has_pellet: c == '.',
+                has_power_pellet: c == 'o',
+                is_traversable: c != 'X',
+                is_tunnel: c == 't',
             };
             tiles.push(tile);
         }
