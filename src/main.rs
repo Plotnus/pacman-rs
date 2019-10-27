@@ -1,6 +1,4 @@
-// TODO find way to get rid of image
 extern crate cgmath;
-extern crate image;
 extern crate piston_window;
 
 use piston_window::*;
@@ -111,8 +109,6 @@ fn main() {
             } else if y > y_max {
                 gamestate.player.position.y = y_min as f32;
             }
-
-            // TODO collision
         }
 
         // UPDATE VIEW
