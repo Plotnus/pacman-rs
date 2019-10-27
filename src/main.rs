@@ -141,16 +141,23 @@ fn main() {
 
                             let x_pos = col * PIXELS_PER_TILE;
                             let y_pos = row * PIXELS_PER_TILE;
-                            let rect = [
-                                x_pos as f64,
-                                y_pos as f64,
-                                PIXELS_PER_TILE as f64,
-                                PIXELS_PER_TILE as f64,
-                            ];
+                            let width = PIXELS_PER_TILE as f64;
+                            let height = width;
+                            let rect = [ x_pos as f64, y_pos as f64, width, height, ];
                             let transform = context
                                 .transform
                                 .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64);
+
+                            // draw tile
                             rectangle(color, rect, transform, g);
+
+                            // draw pellet if there is one
+                            if tile.has_pellet {
+                                let color = [0.8,0.8,0.8,1.0];
+                                let pellet = Ellipse::new(color);
+                                let rect = [rect[0], rect[1], rect[2]*0.25, rect[3] * 0.25];
+                                pellet.draw(rect, &Default::default(), transform, g);
+                            }
                         } else {
                             println!("failed to get tile for (row,col): ({},{})", row, col);
                             assert!(false);
