@@ -139,10 +139,8 @@ fn main() {
                                 black
                             };
 
-                            let tile_width = PIXELS_PER_TILE as f64;
-                            let tile_height = tile_width;
                             // this is constant for all tiles
-                            const tile_extents: Vec2 = Vec2 {
+                            const TILE_EXTENTS: Vec2 = Vec2 {
                                 x: PIXELS_PER_TILE as f32 * 0.5,
                                 y: PIXELS_PER_TILE as f32 * 0.5,
                             };
@@ -150,7 +148,7 @@ fn main() {
                                 x: col as f32 * PIXELS_PER_TILE as f32,
                                 y: row as f32 * PIXELS_PER_TILE as f32,
                             };
-                            let rect = [ tile_pos.x as f64, tile_pos.y as f64, tile_extents.x as f64 * 2.0, tile_extents.y as f64 * 2.0 ];
+                            let rect = [ tile_pos.x as f64, tile_pos.y as f64, TILE_EXTENTS.x as f64 * 2.0, TILE_EXTENTS.y as f64 * 2.0 ];
                             let transform = context
                                 .transform
                                 .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64);
@@ -162,8 +160,8 @@ fn main() {
                             if tile.has_pellet {
                                 // draw a PELLET
                                 const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
-                                let pellet_extents = tile_extents * 0.25;
-                                let pellet_pos = tile_pos + tile_extents - pellet_extents;
+                                let pellet_extents = TILE_EXTENTS * 0.25;
+                                let pellet_pos = tile_pos + TILE_EXTENTS - pellet_extents;
                                 let pellet = Ellipse::new(PELLET_COLOR);
                                 let rect: [f64;4] = [
                                     pellet_pos.x as f64,
@@ -180,8 +178,8 @@ fn main() {
                                 //   everything else is the same as draing pellet.
                                 //   good candidate to pull out
                                 const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
-                                let pellet_extents = tile_extents * 0.5;
-                                let pellet_pos = tile_pos + tile_extents - pellet_extents;
+                                let pellet_extents = TILE_EXTENTS * 0.5;
+                                let pellet_pos = tile_pos + TILE_EXTENTS - pellet_extents;
                                 let pellet = Ellipse::new(PELLET_COLOR);
                                 let rect: [f64;4] = [
                                     pellet_pos.x as f64,
@@ -295,9 +293,6 @@ fn parse_piston_input_event(button_args: piston_window::ButtonArgs) -> Option<In
         }
     }
     None
-}
-
-fn draw_pellet(pos: Vec2) {
 }
 
 // PixelPosition => TilePosition
