@@ -160,6 +160,7 @@ fn main() {
 
                             // draw pellet if there is one
                             if tile.has_pellet {
+                                // draw a PELLET
                                 const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
                                 let pellet_extents = tile_extents * 0.25;
                                 let pellet_pos = tile_pos + tile_extents - pellet_extents;
@@ -174,10 +175,21 @@ fn main() {
                                 pellet.draw(rect, &Default::default(), transform, g);
                             }
                             if tile.has_power_pellet {
-                                let color = [0.8,0.8,0.8,1.0];
-                                let pellet = Ellipse::new(color);
-                                let scale = 0.5;
-                                let rect = [rect[0], rect[1], rect[2]*scale, rect[3] * scale];
+                                // draw a POWER_PELLET
+                                // - the only thing that changes here is `scale`
+                                //   everything else is the same as draing pellet.
+                                //   good candidate to pull out
+                                const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
+                                let pellet_extents = tile_extents * 0.5;
+                                let pellet_pos = tile_pos + tile_extents - pellet_extents;
+                                let pellet = Ellipse::new(PELLET_COLOR);
+                                let rect: [f64;4] = [
+                                    pellet_pos.x as f64,
+                                    pellet_pos.y as f64,
+                                    pellet_extents.x as f64 * 2.0,
+                                    pellet_extents.y as f64 * 2.0,
+                                ];
+
                                 pellet.draw(rect, &Default::default(), transform, g);
                             }
                         } else {
