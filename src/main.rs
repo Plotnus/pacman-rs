@@ -37,12 +37,10 @@ fn main() {
         .build()
         .unwrap();
 
-    let player_start = Vec2::new(
-        (board.width / 2 * PIXELS_PER_TILE) as f32,
-        ((board.height - 8) * PIXELS_PER_TILE) as f32,
-    );
+    let x = (board.width / 2 * PIXELS_PER_TILE) as f32;
+    let y = ((board.height / 2 + 5) * PIXELS_PER_TILE) as f32 + PIXELS_PER_TILE as f32 * 0.5;
     let player = CharacterState {
-        position: player_start,
+        position: Vec2::new(x,y),
         move_dir: Vec2::new(0_f32, 0_f32),
     };
 
@@ -177,6 +175,9 @@ fn main() {
                     let transform = context
                         .transform
                         .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64);
+                    // draw tile_pos as yellow tile
+                    // draw pixel_pos as red dot
+                    // draw black triangle an direction
                     rectangle(color, rect, transform, g);
                     // direction signifier
                     let line = Line {
