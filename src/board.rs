@@ -91,6 +91,21 @@ impl Board {
             x: h % self.width,
             y: h / self.width,
         }
+    }
 
+    pub fn tile_is_traversable(&self, h: usize) -> bool {
+        self.get_tile(h).is_traversable
+    }
+
+    pub fn tile_is_tunnel(&self, h: usize) -> bool {
+        self.get_tile(h).is_tunnel
+    }
+
+    pub fn tile_has_pellet(&self, h: usize) -> bool {
+        self.get_tile(h).has_pellet
+    }
+
+    pub fn tile_has_power_pellet(&self, h: usize) -> bool {
+        self.get_tile(h).has_power_pellet
     }
 }

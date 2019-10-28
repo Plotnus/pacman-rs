@@ -101,103 +101,73 @@ fn main() {
         if let Some(_) = e.render_args() {
             //          texture.update(&mut window.encoder, &pixel_buffer).unwrap();
             window.draw_2d(&e, |context, g, _| {
-                let clear_color = [0.2, 0.2, 0.2, 1.0];
+                let clear_color = [0.0, 0.0, 0.0, 1.0];
                 clear(clear_color, g);
 
                 // draw board
                 let board = &gamestate.board;
+                let transform = context
+                    .transform
+                    .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64);
+
+                // draw walls
                 for h in 0..board.tiles.len() {
-                    // get the color for the tile
-                    let tile = board.get_tile(h);
-                    let tile_board_pos = board.get_board_pos_of_tile(h);
-
-                    let black = [0.0, 0.0, 0.0, 1.0];
-                    let tunnel_color = [0.2, 0.2, 0.2, 1.0];
-                    let wall_color = [0.0, 0.0, 0.5, 1.0];
-                    let color = if !tile.is_traversable {
-                        wall_color
-                    } else if tile.is_tunnel {
-                        tunnel_color
-                    } else {
-                        black
-                    };
-
-                    // this is constant for all tiles
-                    const TILE_EXTENTS: Vec2 = Vec2 {
-                        x: PIXELS_PER_TILE as f32 * 0.5,
-                        y: PIXELS_PER_TILE as f32 * 0.5,
-                    };
-
-                    let tile_pos = Vec2 {
-                        x: tile_board_pos.x as f32 * PIXELS_PER_TILE as f32,
-                        y: tile_board_pos.y as f32 * PIXELS_PER_TILE as f32,
-                    };
-                    let rect = [
-                        tile_pos.x as f64,
-                        tile_pos.y as f64,
-                        TILE_EXTENTS.x as f64 * 2.0,
-                        TILE_EXTENTS.y as f64 * 2.0
-                    ];
-                    let transform = context
-                        .transform
-                        .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64);
-
-                    // draw tile
-                    rectangle(color, rect, transform, g);
-
-                    // draw pellet if there is one
-                    if tile.has_pellet {
-                        // draw a PELLET
-                        const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
-                        let pellet_extents = TILE_EXTENTS * 0.25;
-                        let pellet_pos = tile_pos + TILE_EXTENTS - pellet_extents;
-                        let pellet = Ellipse::new(PELLET_COLOR);
-                        let rect: [f64;4] = [
-                            pellet_pos.x as f64,
-                            pellet_pos.y as f64,
-                            pellet_extents.x as f64 * 2.0,
-                            pellet_extents.y as f64 * 2.0,
-                        ];
-
-                        pellet.draw(rect, &Default::default(), transform, g);
+                    if board.tile_is_traversable(h) {
+                        continue;
                     }
-                    if tile.has_power_pellet {
-                        // draw a POWER_PELLET
-                        // - the only thing that changes here is `scale`
-                        //   everything else is the same as draing pellet.
-                        //   good candidate to pull out
-                        const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
-                        let pellet_extents = TILE_EXTENTS * 0.5;
-                        let pellet_pos = tile_pos + TILE_EXTENTS - pellet_extents;
-                        let pellet = Ellipse::new(PELLET_COLOR);
-                        let rect: [f64;4] = [
-                            pellet_pos.x as f64,
-                            pellet_pos.y as f64,
-                            pellet_extents.x as f64 * 2.0,
-                            pellet_extents.y as f64 * 2.0,
-                        ];
 
-                        pellet.draw(rect, &Default::default(), transform, g);
-                    }
+                    let pos = board.get_board_pos_of_tile(h);
+                    const WALL_COLOR: [f32;4] = [0.0, 0.0, 0.6, 1.0 ];
+                    draw_tile(pos, WALL_COLOR, transform, g);
                 }
 
-                // draw grid
-                let grid = grid::Grid {
-                    cols: gamestate.board.width as u32,
-                    rows: gamestate.board.height as u32,
-                    units: (PIXELS_PER_TILE * WINDOW_SCALE) as f64,
-                };
-                let line = Line {
-                    color: [0.8, 0.8, 0.8, 1.0], // <--- grey
-                    radius: 0.5,
-                    shape: line::Shape::Round,
-                };
-                grid.draw(&line, &context.draw_state, context.transform, g);
-                // draw dots
-                // draw fruits
-                // draw score
-                {
-                    // draw player
+                // draw tunnels
+                for h in 0..board.tiles.len() {
+                    if !board.tile_is_tunnel(h) {
+                        continue;
+                    }
+                    const TUNNEL_COLOR: [f32;4] = [0.2, 0.2, 0.2, 1.0];
+                    let pos = board.get_board_pos_of_tile(h);
+                    draw_tile(pos, TUNNEL_COLOR, transform, g);
+                }
+
+                // draw pellets
+                for h in 0..board.tiles.len() {
+                    if !board.tile_has_pellet(h) {
+                        continue;
+                    }
+                    const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
+                    const SCALE: f32 = 0.25;
+                    let pos = board.get_board_pos_of_tile(h);
+                    draw_circle(pos, PELLET_COLOR, SCALE, transform, g);
+                }
+
+                // draw power_pellets
+                for h in 0..board.tiles.len() {
+                    if !board.tile_has_power_pellet(h) {
+                        continue;
+                    }
+                    const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
+                    const SCALE: f32 = 0.5;
+                    let pos = board.get_board_pos_of_tile(h);
+                    draw_circle(pos, PELLET_COLOR, SCALE, transform, g);
+                }
+
+                { // draw grid
+                    let grid = grid::Grid {
+                        cols: gamestate.board.width as u32,
+                        rows: gamestate.board.height as u32,
+                        units: (PIXELS_PER_TILE * WINDOW_SCALE) as f64,
+                    };
+                    let line = Line {
+                        color: [0.8, 0.8, 0.8, 1.0], // <--- grey
+                        radius: 0.5,
+                        shape: line::Shape::Round,
+                    };
+                    grid.draw(&line, &context.draw_state, context.transform, g);
+                }
+
+                { // draw player
                     let x = gamestate.player.position.x as f64;
                     let y = gamestate.player.position.y as f64;
                     let shift = PIXELS_PER_TILE as f64 * 0.5;
@@ -233,13 +203,8 @@ fn main() {
                     let rect = [x, y, 1.0, 1.0];
                     rectangle(color, rect, transform, g);
                 }
-
-                // draw ghosts
-                //
             });
         }
-
-        // RESET FRAME VARIABLES
     }
 }
 
@@ -279,7 +244,46 @@ fn parse_piston_input_event(button_args: piston_window::ButtonArgs) -> Option<In
     None
 }
 
-// PixelPosition => TilePosition
-// update move_direction based on controllers
-// position += move_direction * move_speed;
-// tile_position = position * (1/ NUM_PIXELS_PER_TILE);
+
+pub fn draw_tile<G>(
+    pos: BoardPos,
+    color: [f32;4],
+    transform: math::Matrix2d,
+    g: &mut G)
+    where G: Graphics
+{
+    let w = PIXELS_PER_TILE as f64;
+    let h = w;
+    let x = pos.x as f64 * w;
+    let y = pos.y as f64 * h;
+    let rect = [ x, y, w, h, ];
+
+    // draw tile
+    rectangle(color, rect, transform, g);
+}
+
+pub fn draw_circle<G>(
+    pos: BoardPos,
+    color: [f32;4],
+    scale: f32,
+    transform: math::Matrix2d,
+    g: &mut G)
+    where G: Graphics
+{
+    let w = PIXELS_PER_TILE as f64 * scale as f64;
+    let h = w;
+
+    let x = (pos.x * PIXELS_PER_TILE) as f64
+          + PIXELS_PER_TILE as f64 * 0.5
+          - w * 0.5;
+    let y = (pos.y * PIXELS_PER_TILE) as f64
+          + PIXELS_PER_TILE as f64 * 0.5
+          - h * 0.5;
+    let rect: [f64;4] = [
+        x as f64,
+        y as f64,
+        w as f64,
+        h as f64,
+    ];
+    Ellipse::new(color).draw(rect, &Default::default(), transform, g);
+}
