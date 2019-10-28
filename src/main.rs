@@ -161,43 +161,33 @@ fn main() {
                 }
 
                 { // draw player
-                    let x = gamestate.player.position.x as f64;
-                    let y = gamestate.player.position.y as f64;
-                    let shift = PIXELS_PER_TILE as f64 * 0.5;
-                    // body
-                    let color = [1.0, 1.0, 0.0, 0.5];
-                    let rect = [
-                        x - shift,
-                        y - shift,
-                        PIXELS_PER_TILE as f64,
-                        PIXELS_PER_TILE as f64,
-                    ];
-                    let transform = context
-                        .transform
-                        .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64);
-                    // draw tile_pos as yellow tile
-                    // draw pixel_pos as red dot
-                    // draw black triangle an direction
-                    rectangle(color, rect, transform, g);
+                    let x = gamestate.player.position.x;
+                    let y = gamestate.player.position.y;
+
+                    // draw tile pos of pacman
+                    let tile_pos = BoardPos::from_px_pos(x as usize,y as usize);
+                    let yellow = [1.0, 1.0, 0.0, 0.5];
+                    draw_tile(tile_pos, yellow, transform, g);
+                    // draw pixel pos of pacman
+                    let red = [1.0, 0.0, 0.0, 1.0];
+                    let rect = [x as f64, y as f64, 1.0, 1.0];
+                    rectangle(red, rect, transform, g);
+
                     // direction signifier
-                    let line = Line {
-                        color: [0.0, 0.0, 0.0, 1.0],
-                        radius: 1.0,
-                        shape: line::Shape::Round,
-                    };
-                    let a = [x + 1.0, y, x - 1.0, y - 1.0];
-                    let b = [x - 1.0, y - 1.0, x - 1.0, y + 1.0];
-                    let c = [x - 1.0, y + 1.0, x + 1.0, y];
-                    let t = context
-                        .transform
-                        .scale(1.5 * WINDOW_SCALE as f64, 1.5 * WINDOW_SCALE as f64);
-                    line.draw_tri(a, &context.draw_state, t, g);
-                    line.draw_tri(b, &context.draw_state, t, g);
-                    line.draw_tri(c, &context.draw_state, t, g);
-                    // pixel position
-                    let color = [1.0, 0.0, 0.0, 1.0];
-                    let rect = [x, y, 1.0, 1.0];
-                    rectangle(color, rect, transform, g);
+                    //let line = Line {
+                    //    color: [0.0, 0.0, 0.0, 1.0],
+                    //    radius: 1.0,
+                    //    shape: line::Shape::Round,
+                    //};
+                    //let a = [x + 1.0, y, x - 1.0, y - 1.0];
+                    //let b = [x - 1.0, y - 1.0, x - 1.0, y + 1.0];
+                    //let c = [x - 1.0, y + 1.0, x + 1.0, y];
+                    //let t = context
+                    //    .transform
+                    //    .scale(1.5 * WINDOW_SCALE as f64, 1.5 * WINDOW_SCALE as f64);
+                    //line.draw_tri(a, &context.draw_state, t, g);
+                    //line.draw_tri(b, &context.draw_state, t, g);
+                    //line.draw_tri(c, &context.draw_state, t, g);
                 }
             });
         }

@@ -55,7 +55,17 @@ pub struct BoardPos {
     pub y: usize,
 }
 
+impl BoardPos {
+    pub fn from_px_pos(x: usize, y: usize) -> BoardPos {
+        BoardPos {
+            x: x / Board::PIXELS_PER_TILE,
+            y: y / Board::PIXELS_PER_TILE,
+        }
+    }
+}
+
 impl Board {
+    const PIXELS_PER_TILE: usize = 8;
     pub fn new() -> Board {
         let width = 28;
         let height = 31;
