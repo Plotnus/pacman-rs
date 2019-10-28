@@ -111,46 +111,41 @@ fn main() {
                     .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64);
 
                 // draw walls
-                for h in 0..board.tiles.len() {
-                    if board.tile_is_traversable(h) {
-                        continue;
+                for h in 0..board.num_tiles {
+                    if !board.tile_is_traversable(h) {
+                        let pos = board.get_board_pos_of_tile(h);
+                        const WALL_COLOR: [f32;4] = [0.0, 0.0, 0.6, 1.0 ];
+                        draw_tile(pos, WALL_COLOR, transform, g);
                     }
-
-                    let pos = board.get_board_pos_of_tile(h);
-                    const WALL_COLOR: [f32;4] = [0.0, 0.0, 0.6, 1.0 ];
-                    draw_tile(pos, WALL_COLOR, transform, g);
                 }
 
                 // draw tunnels
-                for h in 0..board.tiles.len() {
-                    if !board.tile_is_tunnel(h) {
-                        continue;
+                for h in 0..board.num_tiles {
+                    if board.tile_is_tunnel(h) {
+                        const TUNNEL_COLOR: [f32;4] = [0.2, 0.2, 0.2, 1.0];
+                        let pos = board.get_board_pos_of_tile(h);
+                        draw_tile(pos, TUNNEL_COLOR, transform, g);
                     }
-                    const TUNNEL_COLOR: [f32;4] = [0.2, 0.2, 0.2, 1.0];
-                    let pos = board.get_board_pos_of_tile(h);
-                    draw_tile(pos, TUNNEL_COLOR, transform, g);
                 }
 
                 // draw pellets
-                for h in 0..board.tiles.len() {
-                    if !board.tile_has_pellet(h) {
-                        continue;
+                for h in 0..board.num_tiles {
+                    if board.tile_has_pellet(h) {
+                        const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
+                        const SCALE: f32 = 0.25;
+                        let pos = board.get_board_pos_of_tile(h);
+                        draw_circle(pos, PELLET_COLOR, SCALE, transform, g);
                     }
-                    const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
-                    const SCALE: f32 = 0.25;
-                    let pos = board.get_board_pos_of_tile(h);
-                    draw_circle(pos, PELLET_COLOR, SCALE, transform, g);
                 }
 
                 // draw power_pellets
-                for h in 0..board.tiles.len() {
-                    if !board.tile_has_power_pellet(h) {
-                        continue;
+                for h in 0..board.num_tiles {
+                    if board.tile_has_power_pellet(h) {
+                        const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
+                        const SCALE: f32 = 0.5;
+                        let pos = board.get_board_pos_of_tile(h);
+                        draw_circle(pos, PELLET_COLOR, SCALE, transform, g);
                     }
-                    const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
-                    const SCALE: f32 = 0.5;
-                    let pos = board.get_board_pos_of_tile(h);
-                    draw_circle(pos, PELLET_COLOR, SCALE, transform, g);
                 }
 
                 { // draw grid

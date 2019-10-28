@@ -36,20 +36,18 @@ const MAZE_DEF: &str = "\
                     X..........................X\
                     XXXXXXXXXXXXXXXXXXXXXXXXXXXX\
                     ";
-////////////////////////////////////////////////////////////////////////////////
-pub struct Tile {
-    pub has_pellet: bool,
-    pub has_power_pellet: bool,
-    pub is_traversable: bool,
-    pub is_tunnel: bool,
-}
 
-////////////////////////////////////////////////////////////////////////////////
 pub struct Board {
-    pub tiles: Vec<Tile>,
+    pub is_traversable: Vec<bool>,
+    pub is_tunnel: Vec<bool>,
+    pub has_pellet: Vec<bool>,
+    pub has_power_pellet: Vec<bool>,
+
     pub width: usize,
     pub height: usize,
+    pub num_tiles: usize,
 }
+
 // tiles have a board position
 // this is different than pixel position
 pub struct BoardPos {
@@ -59,34 +57,40 @@ pub struct BoardPos {
 
 impl Board {
     pub fn new() -> Board {
-        let mut tiles: Vec<Tile> = Vec::new();
         let width = 28;
         let height = 31;
-        tiles.reserve(width * height);
+        let num_tiles = width * height;
+
+        let mut is_traversable = Vec::with_capacity(num_tiles);
+        let mut has_power_pellet = Vec::with_capacity(num_tiles);
+        let mut has_pellet = Vec::with_capacity(num_tiles);
+        let mut is_tunnel = Vec::with_capacity(num_tiles);
+
         for c in MAZE_DEF.chars() {
-            let tile = Tile {
-                has_pellet: c == '.',
-                has_power_pellet: c == 'o',
-                is_traversable: c != 'X',
-                is_tunnel: c == 't',
-            };
-            tiles.push(tile);
+            is_traversable.push(c != 'X');
+            has_power_pellet.push(c == 'o');
+            has_pellet.push(c == '.');
+            is_tunnel.push(c == 't');
         }
+
+        assert_eq!(num_tiles, is_traversable.len());
+        assert_eq!(num_tiles, is_tunnel.len());
+        assert_eq!(num_tiles, has_pellet.len());
+        assert_eq!(num_tiles, has_power_pellet.len());
 
         Board {
-            tiles,
-            width: width,
-            height: height,
+            is_traversable,
+            is_tunnel,
+            has_pellet,
+            has_power_pellet,
+            width,
+            height,
+            num_tiles,
         }
-    }
-
-    pub fn get_tile(&self, h: usize) -> &Tile {
-        assert!(h < self.tiles.len());
-        &self.tiles[h]
     }
 
     pub fn get_board_pos_of_tile(&self, h: usize) ->  BoardPos {
-        assert!(h < self.tiles.len());
+        assert!(h < self.num_tiles);
         BoardPos {
             x: h % self.width,
             y: h / self.width,
@@ -94,18 +98,22 @@ impl Board {
     }
 
     pub fn tile_is_traversable(&self, h: usize) -> bool {
-        self.get_tile(h).is_traversable
+        assert!(h < self.is_traversable.len());
+        self.is_traversable[h]
     }
 
     pub fn tile_is_tunnel(&self, h: usize) -> bool {
-        self.get_tile(h).is_tunnel
+        assert!(h < self.is_tunnel.len());
+        self.is_tunnel[h]
     }
 
     pub fn tile_has_pellet(&self, h: usize) -> bool {
-        self.get_tile(h).has_pellet
+        assert!(h < self.has_pellet.len());
+        self.has_pellet[h]
     }
 
     pub fn tile_has_power_pellet(&self, h: usize) -> bool {
-        self.get_tile(h).has_power_pellet
+        assert!(h < self.has_power_pellet.len());
+        self.has_power_pellet[h]
     }
 }
