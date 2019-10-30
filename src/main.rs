@@ -70,26 +70,35 @@ fn main() {
         // UPDATE MODEL
         if gamestate.ready_to_process_turn {
             // update position
-            gamestate.player.position += gamestate.player.move_dir;
+            let board_pos_to_check = {
+                let mut pos = gamestate.player.position;
+                pos = pos  + gamestate.player.move_dir * Board::PIXELS_PER_TILE as f32;
+                BoardPos::from(PxPos::from(pos))
+            };
+            let tile_handle = gamestate.board.get_tile_of_board_pos(board_pos_to_check);
+            let can_update_position = gamestate.board.tile_is_traversable(tile_handle);
+            if can_update_position {
+                gamestate.player.position += gamestate.player.move_dir;
 
-            // x-axis wrap
-            let x_min = 0;
-            let x_max = (gamestate.board.width * PIXELS_PER_TILE - 1) as i32;
-            let x = gamestate.player.position.x as i32;
-            if x < x_min {
-                gamestate.player.position.x = x_max as f32;
-            } else if x > x_max {
-                gamestate.player.position.x = x_min as f32;
-            }
+                // x-axis wrap
+                let x_min = 0;
+                let x_max = (gamestate.board.width * PIXELS_PER_TILE - 1) as i32;
+                let x = gamestate.player.position.x as i32;
+                if x < x_min {
+                    gamestate.player.position.x = x_max as f32;
+                } else if x > x_max {
+                    gamestate.player.position.x = x_min as f32;
+                }
 
-            // y-axis wrap
-            let y_min = 0;
-            let y_max = (gamestate.board.height * PIXELS_PER_TILE - 1) as i32;
-            let y = gamestate.player.position.y as i32;
-            if y < y_min {
-                gamestate.player.position.y = y_max as f32;
-            } else if y > y_max {
-                gamestate.player.position.y = y_min as f32;
+                // y-axis wrap
+                let y_min = 0;
+                let y_max = (gamestate.board.height * PIXELS_PER_TILE - 1) as i32;
+                let y = gamestate.player.position.y as i32;
+                if y < y_min {
+                    gamestate.player.position.y = y_max as f32;
+                } else if y > y_max {
+                    gamestate.player.position.y = y_min as f32;
+                }
             }
         }
 

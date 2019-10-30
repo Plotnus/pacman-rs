@@ -78,7 +78,7 @@ impl From<PxPos> for BoardPos {
 }
 
 impl Board {
-    const PIXELS_PER_TILE: usize = 8;
+    pub const PIXELS_PER_TILE: usize = 8;
     pub fn new() -> Board {
         let width = 28;
         let height = 31;
@@ -118,6 +118,12 @@ impl Board {
             x: h % self.width,
             y: h / self.width,
         }
+    }
+    pub fn get_tile_of_board_pos(&self, board_pos: BoardPos) ->  usize {
+        assert!(board_pos.x < self.width);
+        assert!(board_pos.y < self.height);
+
+        board_pos.y * self.width + board_pos.x
     }
 
     pub fn tile_is_traversable(&self, h: usize) -> bool {
