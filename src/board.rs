@@ -1,4 +1,4 @@
-//
+use crate::vec2::Vec2;
 // X = wall
 // . = pellet
 // o = power pellet
@@ -48,18 +48,31 @@ pub struct Board {
     pub num_tiles: usize,
 }
 
+pub struct PxPos {
+    pub x: usize,
+    pub y: usize,
+}
+impl From<Vec2>  for PxPos {
+    fn from(v: Vec2) -> PxPos {
+        PxPos {
+            x: v.x as usize,
+            y: v.y as usize,
+        }
+    }
+}
+
+
 // tiles have a board position
 // this is different than pixel position
 pub struct BoardPos {
     pub x: usize,
     pub y: usize,
 }
-
-impl BoardPos {
-    pub fn from_px_pos(x: usize, y: usize) -> BoardPos {
+impl From<PxPos> for BoardPos {
+    fn from(p: PxPos) -> BoardPos {
         BoardPos {
-            x: x / Board::PIXELS_PER_TILE,
-            y: y / Board::PIXELS_PER_TILE,
+            x: p.x / Board::PIXELS_PER_TILE,
+            y: p.y / Board::PIXELS_PER_TILE,
         }
     }
 }

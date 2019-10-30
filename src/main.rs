@@ -1,5 +1,6 @@
 use piston_window::*;
 
+mod vec2;
 mod board;
 use crate::board::*;
 
@@ -163,7 +164,8 @@ fn main() {
                     let y = gamestate.player.position.y as f64;
 
                     // draw tile pos of pacman
-                    let tile_pos = BoardPos::from_px_pos(x as usize,y as usize);
+                    let px_pos = PxPos::from(gamestate.player.position);
+                    let tile_pos = BoardPos::from(px_pos);
                     let yellow = [1.0, 1.0, 0.0, 0.5];
                     draw_tile(&tile_pos, yellow, transform, g);
                     // draw pixel pos of pacman
