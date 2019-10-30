@@ -113,7 +113,7 @@ fn main() {
                     if !board.tile_is_traversable(h) {
                         let pos = board.get_board_pos_of_tile(h);
                         const WALL_COLOR: [f32;4] = [0.0, 0.0, 0.6, 1.0 ];
-                        draw_tile(pos, WALL_COLOR, transform, g);
+                        draw_tile(&pos, WALL_COLOR, transform, g);
                     }
                 }
 
@@ -122,7 +122,7 @@ fn main() {
                     if board.tile_is_tunnel(h) {
                         const TUNNEL_COLOR: [f32;4] = [0.2, 0.2, 0.2, 1.0];
                         let pos = board.get_board_pos_of_tile(h);
-                        draw_tile(pos, TUNNEL_COLOR, transform, g);
+                        draw_tile(&pos, TUNNEL_COLOR, transform, g);
                     }
                 }
 
@@ -161,33 +161,55 @@ fn main() {
                 }
 
                 { // draw player
-                    let x = gamestate.player.position.x;
-                    let y = gamestate.player.position.y;
+                    // casting now saves some casts later
+                    let x = gamestate.player.position.x as f64;
+                    let y = gamestate.player.position.y as f64;
 
                     // draw tile pos of pacman
                     let tile_pos = BoardPos::from_px_pos(x as usize,y as usize);
                     let yellow = [1.0, 1.0, 0.0, 0.5];
-                    draw_tile(tile_pos, yellow, transform, g);
+                    draw_tile(&tile_pos, yellow, transform, g);
                     // draw pixel pos of pacman
                     let red = [1.0, 0.0, 0.0, 1.0];
-                    let rect = [x as f64, y as f64, 1.0, 1.0];
+                    let rect = [x, y, 1.0, 1.0];
                     rectangle(red, rect, transform, g);
 
-                    // direction signifier
-                    //let line = Line {
-                    //    color: [0.0, 0.0, 0.0, 1.0],
-                    //    radius: 1.0,
-                    //    shape: line::Shape::Round,
-                    //};
-                    //let a = [x + 1.0, y, x - 1.0, y - 1.0];
-                    //let b = [x - 1.0, y - 1.0, x - 1.0, y + 1.0];
-                    //let c = [x - 1.0, y + 1.0, x + 1.0, y];
-                    //let t = context
-                    //    .transform
-                    //    .scale(1.5 * WINDOW_SCALE as f64, 1.5 * WINDOW_SCALE as f64);
-                    //line.draw_tri(a, &context.draw_state, t, g);
-                    //line.draw_tri(b, &context.draw_state, t, g);
-                    //line.draw_tri(c, &context.draw_state, t, g);
+                    let center_of_tile = {
+                        let mut v = Vec2::new(tile_pos.x as f32, tile_pos.y as f32);
+                        v *= PIXELS_PER_TILE as f32;
+                        v.x += (PIXELS_PER_TILE / 2) as f32;
+                        v.y += (PIXELS_PER_TILE / 2) as f32;
+                        v
+                    };
+
+                    // offset from center of tile
+                    let color = [0.0, 0.0, 0.0, 1.0];
+                    let scale = 1.2;
+                    let offset = 1.8;
+                    let forward = gamestate.player.move_dir;
+
+                    let transform = transform
+                        .trans(center_of_tile.x as f64, center_of_tile.y as f64)
+                        .orient(forward.x as f64, forward.y as f64)
+                        .zoom(scale)
+                        .trans(offset, 0.0);
+
+                    // we're using a triangle so the next few bits of code are about
+                    // a) defining the points of our triangle
+                    // b) drawing the lines to make the triangle
+                    let a = [1.0, 0.0];
+                    let b = [0.0, -0.8];
+                    let c = [0.0, 0.8];
+
+                    // draw
+                    let line = Line {
+                        color: color,
+                        radius: 0.4,
+                        shape: line::Shape::Round,
+                    };
+                    line.draw_from_to(a, b, &context.draw_state, transform, g);
+                    line.draw_from_to(b, c, &context.draw_state, transform, g);
+                    line.draw_from_to(c, a, &context.draw_state, transform, g);
                 }
             });
         }
@@ -232,7 +254,7 @@ fn parse_piston_input_event(button_args: piston_window::ButtonArgs) -> Option<In
 
 
 pub fn draw_tile<G>(
-    pos: BoardPos,
+    pos: &BoardPos,
     color: [f32;4],
     transform: math::Matrix2d,
     g: &mut G)
