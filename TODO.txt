@@ -1,0 +1,5 @@
+[ ] Work on doing something about that Pixel data and pulling it out of game logic
+    - maybe we have logical pixels, and raster pixel.
+    - or maybe we just ditch the idea of pixel and say 1px = 1unit so we can 'measure' pacman
+    - By doing this we save all the actual pixel stuff for rendering which is where it belongs
+[ ] Start using png for stuff

@@ -48,37 +48,25 @@ pub struct Board {
     pub num_tiles: usize,
 }
 
-pub struct PxPos {
-    pub x: usize,
-    pub y: usize,
-}
-impl From<Vec2>  for PxPos {
-    fn from(v: Vec2) -> PxPos {
-        PxPos {
-            x: v.x as usize,
-            y: v.y as usize,
-        }
-    }
-}
 
-
-// tiles have a board position
-// this is different than pixel position
 pub struct BoardPos {
     pub x: usize,
     pub y: usize,
 }
-impl From<PxPos> for BoardPos {
-    fn from(p: PxPos) -> BoardPos {
+
+
+impl From<Vec2> for BoardPos {
+    fn from(p: Vec2) -> BoardPos {
         BoardPos {
-            x: p.x / Board::PIXELS_PER_TILE,
-            y: p.y / Board::PIXELS_PER_TILE,
+            x: (p.x / Board::TILE_WIDTH) as usize,
+            y: (p.y / Board::TILE_WIDTH) as usize,
         }
     }
 }
 
+
 impl Board {
-    pub const PIXELS_PER_TILE: usize = 8;
+    pub const TILE_WIDTH: f32 = 8.0;
     pub fn new() -> Board {
         let width = 28;
         let height = 31;

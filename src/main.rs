@@ -35,10 +35,11 @@ fn main() {
         .build()
         .unwrap();
 
-    let x = (board.width / 2 * PIXELS_PER_TILE) as f32;
-    let y = ((board.height / 2 + 5) * PIXELS_PER_TILE) as f32 + PIXELS_PER_TILE as f32 * 0.5;
+    let x = ((board.width / 2) as f32) * Board::TILE_WIDTH;
+    let y = ((board.height / 2) as f32  + 5.5) * Board::TILE_WIDTH;
+    let player_start = Vec2::new(x,y);
     let player = CharacterState {
-        position: Vec2::new(x,y),
+        position: player_start,
         move_dir: Vec2::new(0_f32, 0_f32),
     };
 
@@ -72,8 +73,8 @@ fn main() {
             // update position
             let board_pos_to_check = {
                 let mut pos = gamestate.player.position;
-                pos = pos  + gamestate.player.move_dir * Board::PIXELS_PER_TILE as f32;
-                BoardPos::from(PxPos::from(pos))
+                pos = pos  + gamestate.player.move_dir * Board::TILE_WIDTH;
+                BoardPos::from(pos)
             };
             let tile_handle = gamestate.board.get_tile_of_board_pos(board_pos_to_check);
             let can_update_position = gamestate.board.tile_is_traversable(tile_handle);
@@ -157,7 +158,7 @@ fn main() {
                     let grid = grid::Grid {
                         cols: gamestate.board.width as u32,
                         rows: gamestate.board.height as u32,
-                        units: (PIXELS_PER_TILE * WINDOW_SCALE) as f64,
+                        units: (Board::TILE_WIDTH * WINDOW_SCALE as f32) as f64,
                     };
                     let line = Line {
                         color: [0.8, 0.8, 0.8, 1.0], // <--- grey
@@ -173,8 +174,7 @@ fn main() {
                     let y = gamestate.player.position.y as f64;
 
                     // draw tile pos of pacman
-                    let px_pos = PxPos::from(gamestate.player.position);
-                    let tile_pos = BoardPos::from(px_pos);
+                    let tile_pos = BoardPos::from(gamestate.player.position);
                     let yellow = [1.0, 1.0, 0.0, 0.5];
                     draw_tile(&tile_pos, yellow, transform, g);
                     // draw pixel pos of pacman
@@ -184,9 +184,9 @@ fn main() {
 
                     let center_of_tile = {
                         let mut v = Vec2::new(tile_pos.x as f32, tile_pos.y as f32);
-                        v *= PIXELS_PER_TILE as f32;
-                        v.x += (PIXELS_PER_TILE / 2) as f32;
-                        v.y += (PIXELS_PER_TILE / 2) as f32;
+                        v.x += 0.5;
+                        v.y += 0.5;
+                        v *= Board::TILE_WIDTH;
                         v
                     };
 
