@@ -119,7 +119,7 @@ fn main() {
                 // draw walls
                 for h in 0..board.num_tiles {
                     if !board.tile_is_traversable(h) {
-                        let pos = board.get_board_pos_of_tile(h);
+                        let pos = board.get_local_pos_of_tile(h);
                         const WALL_COLOR: [f32;4] = [0.0, 0.0, 0.6, 1.0 ];
                         draw_tile(&pos, WALL_COLOR, transform, g);
                     }
@@ -129,7 +129,7 @@ fn main() {
                 for h in 0..board.num_tiles {
                     if board.tile_is_tunnel(h) {
                         const TUNNEL_COLOR: [f32;4] = [0.2, 0.2, 0.2, 1.0];
-                        let pos = board.get_board_pos_of_tile(h);
+                        let pos = board.get_local_pos_of_tile(h);
                         draw_tile(&pos, TUNNEL_COLOR, transform, g);
                     }
                 }
@@ -174,16 +174,19 @@ fn main() {
                     let y = gamestate.player.position.y as f64;
 
                     // draw tile pos of pacman
-                    let tile_pos = BoardPos::from(gamestate.player.position);
+                    let board_pos = BoardPos::from(gamestate.player.position);
+                    let tile = gamestate.board.get_tile_of_board_pos(board_pos);
+                    let local_pos = gamestate.board.get_local_pos_of_tile(tile);
                     let yellow = [1.0, 1.0, 0.0, 0.5];
-                    draw_tile(&tile_pos, yellow, transform, g);
+                    draw_tile(&local_pos, yellow, transform, g);
                     // draw pixel pos of pacman
                     let red = [1.0, 0.0, 0.0, 1.0];
                     let rect = [x, y, 1.0, 1.0];
                     rectangle(red, rect, transform, g);
 
                     let center_of_tile = {
-                        let mut v = Vec2::new(tile_pos.x as f32, tile_pos.y as f32);
+                        let board_pos = BoardPos::from(gamestate.player.position);
+                        let mut v = Vec2::new(board_pos.x as f32, board_pos.y as f32);
                         v.x += 0.5;
                         v.y += 0.5;
                         v *= Board::TILE_WIDTH;
@@ -262,19 +265,14 @@ fn parse_piston_input_event(button_args: piston_window::ButtonArgs) -> Option<In
 
 
 pub fn draw_tile<G>(
-    pos: &BoardPos,
+    pos: &Vec2,
     color: [f32;4],
     transform: math::Matrix2d,
     g: &mut G)
     where G: Graphics
 {
-    let w = PIXELS_PER_TILE as f64;
-    let h = w;
-    let x = pos.x as f64 * w;
-    let y = pos.y as f64 * h;
-    let rect = [ x, y, w, h, ];
-
-    // draw tile
+    let rect = [ 0.0, 0.0, Board::TILE_WIDTH as f64, Board::TILE_WIDTH as f64];
+    let transform = transform.trans(pos.x as f64, pos.y as f64);
     rectangle(color, rect, transform, g);
 }
 

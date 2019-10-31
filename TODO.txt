@@ -1,3 +1,6 @@
+[ ] PixelPosition is useful for _this_ game put it back in
+[ ] The issue is more about splitting out the rendering code and cleaning that up.
+[ ] fix this wonky position thing where coords are in the corner... it's annoying to deal with
 [ ] Work on doing something about that Pixel data and pulling it out of game logic
     - maybe we have logical pixels, and raster pixel.
     - or maybe we just ditch the idea of pixel and say 1px = 1unit so we can 'measure' pacman

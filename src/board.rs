@@ -100,6 +100,13 @@ impl Board {
         }
     }
 
+    pub fn get_local_pos_of_tile(&self, h: usize) ->  Vec2 {
+        Vec2 {
+            x: (h % self.width) as f32 * Board::TILE_WIDTH,
+            y: (h / self.width) as f32 * Board::TILE_WIDTH,
+        }
+
+    }
     pub fn get_board_pos_of_tile(&self, h: usize) ->  BoardPos {
         assert!(h < self.num_tiles);
         BoardPos {
