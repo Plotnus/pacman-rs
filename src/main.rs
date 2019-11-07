@@ -2,6 +2,8 @@ use piston_window::*;
 
 mod vec2;
 mod board;
+mod input;
+use crate::input::*;
 use crate::board::*;
 
 type Vec2 = cgmath::Vector2<f32>;
@@ -57,12 +59,12 @@ fn main() {
         // INPUT
         if let Some(piston_button_event) = e.button_args() {
             match parse_piston_input_event(piston_button_event) {
-                Input::Down => gamestate.player.move_dir = World::DOWN,
-                Input::Up => gamestate.player.move_dir = World::UP,
-                Input::Right => gamestate.player.move_dir = World::RIGHT,
-                Input::Left => gamestate.player.move_dir = World::LEFT,
-                Input::Step => gamestate.ready_to_process_turn = true,
-                Input::Nil => (),
+                GameInput::Down => gamestate.player.move_dir = World::DOWN,
+                GameInput::Up => gamestate.player.move_dir = World::UP,
+                GameInput::Right => gamestate.player.move_dir = World::RIGHT,
+                GameInput::Left => gamestate.player.move_dir = World::LEFT,
+                GameInput::Step => gamestate.ready_to_process_turn = true,
+                GameInput::Nil => (),
             }
         }
 
@@ -236,38 +238,16 @@ impl World {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-#[derive(PartialEq)]
-enum Input {
-    Down,
-    Up,
-    Left,
-    Right,
-    Step,
-    Nil,
-}
 
-impl From<keyboard::Key> for Input {
-    fn from(key: keyboard::Key) -> Input {
-        return match key {
-            keyboard::Key::Up => Input::Up,
-            keyboard::Key::Left => Input::Left,
-            keyboard::Key::Down => Input::Down,
-            keyboard::Key::Right => Input::Right,
-            keyboard::Key::Space => Input::Step,
-            _ => Input::Nil,
-        }
-    }
-}
-
-fn parse_piston_input_event(button_args: piston_window::ButtonArgs) -> Input {
+fn parse_piston_input_event(button_args: piston_window::ButtonArgs) -> GameInput {
     if button_args.state == ButtonState::Press {
         if let Button::Keyboard(key) = button_args.button {
-            return Input::from(key);
+            return GameInput::from(key);
         }
     }
-    Input::Nil
+    GameInput::Nil
 }
-
+////////////////////////////////////////////////////////////////////////////////
 
 pub fn draw_tile<G>(
     pos: &Vec2,
