@@ -56,15 +56,13 @@ fn main() {
 
         // INPUT
         if let Some(piston_button_event) = e.button_args() {
-            let optional_input = parse_piston_input_event(piston_button_event);
-            if let Some(input) = optional_input {
-                match input {
-                    Input::Down => gamestate.player.move_dir = World::DOWN,
-                    Input::Up => gamestate.player.move_dir = World::UP,
-                    Input::Right => gamestate.player.move_dir = World::RIGHT,
-                    Input::Left => gamestate.player.move_dir = World::LEFT,
-                    Input::Step => gamestate.ready_to_process_turn = true,
-                }
+            match parse_piston_input_event(piston_button_event) {
+                Input::Down => gamestate.player.move_dir = World::DOWN,
+                Input::Up => gamestate.player.move_dir = World::UP,
+                Input::Right => gamestate.player.move_dir = World::RIGHT,
+                Input::Left => gamestate.player.move_dir = World::LEFT,
+                Input::Step => gamestate.ready_to_process_turn = true,
+                Input::Nil => (),
             }
         }
 
@@ -245,22 +243,29 @@ enum Input {
     Left,
     Right,
     Step,
+    Nil,
 }
 
-fn parse_piston_input_event(button_args: piston_window::ButtonArgs) -> Option<Input> {
-    if button_args.state == ButtonState::Press {
-        if let Button::Keyboard(key) = button_args.button {
-            return match key {
-                keyboard::Key::Up | keyboard::Key::Period => Some(Input::Up),
-                keyboard::Key::Left | keyboard::Key::O => Some(Input::Left),
-                keyboard::Key::Down | keyboard::Key::E => Some(Input::Down),
-                keyboard::Key::Right | keyboard::Key::U => Some(Input::Right),
-                keyboard::Key::Space => Some(Input::Step),
-                _ => None,
-            };
+impl From<keyboard::Key> for Input {
+    fn from(key: keyboard::Key) -> Input {
+        return match key {
+            keyboard::Key::Up => Input::Up,
+            keyboard::Key::Left => Input::Left,
+            keyboard::Key::Down => Input::Down,
+            keyboard::Key::Right => Input::Right,
+            keyboard::Key::Space => Input::Step,
+            _ => Input::Nil,
         }
     }
-    None
+}
+
+fn parse_piston_input_event(button_args: piston_window::ButtonArgs) -> Input {
+    if button_args.state == ButtonState::Press {
+        if let Button::Keyboard(key) = button_args.button {
+            return Input::from(key);
+        }
+    }
+    Input::Nil
 }
 
 
