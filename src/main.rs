@@ -57,16 +57,27 @@ fn main() {
         gamestate.ready_to_process_turn = false;
 
         // INPUT
-        if let Some(piston_button_event) = e.button_args() {
-            match parse_piston_input_event(piston_button_event) {
-                GameInput::Down => gamestate.player.move_dir = World::DOWN,
-                GameInput::Up => gamestate.player.move_dir = World::UP,
-                GameInput::Right => gamestate.player.move_dir = World::RIGHT,
-                GameInput::Left => gamestate.player.move_dir = World::LEFT,
-                GameInput::Step => gamestate.ready_to_process_turn = true,
-                GameInput::Nil => (),
-            }
+        if let Event::Input(piston_input, _time) = e {
+            let input = GameInput::from(piston_input);
+
+            // update move dir based on input
+            gamestate.player.move_dir = match input {
+                GameInput::Down =>  World::DOWN,
+                GameInput::Up =>  World::UP,
+                GameInput::Right =>  World::RIGHT,
+                GameInput::Left =>  World::LEFT,
+                _ => gamestate.player.move_dir,
+            };
+
+            gamestate.ready_to_process_turn = match input {
+                GameInput::Step => true,
+                _ => false,
+            };
+            continue;
         }
+
+
+
 
         // UPDATE MODEL
         if gamestate.ready_to_process_turn {
@@ -235,17 +246,6 @@ impl World {
     const RIGHT: Vec2 = Vec2::new(1_f32, 0_f32);
     const UP: Vec2 = Vec2::new(0_f32, -1_f32);
     const DOWN: Vec2 = Vec2::new(0_f32, 1_f32);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-fn parse_piston_input_event(button_args: piston_window::ButtonArgs) -> GameInput {
-    if button_args.state == ButtonState::Press {
-        if let Button::Keyboard(key) = button_args.button {
-            return GameInput::from(key);
-        }
-    }
-    GameInput::Nil
 }
 ////////////////////////////////////////////////////////////////////////////////
 
