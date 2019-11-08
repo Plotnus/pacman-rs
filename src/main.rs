@@ -53,8 +53,6 @@ fn main() {
     };
 
     while let Some(e) = window.next() {
-        // RESET FRAME VARS
-        gamestate.ready_to_process_turn = false;
 
         // INPUT
         if let Event::Input(piston_input, _time) = e {
@@ -68,28 +66,38 @@ fn main() {
                 GameInput::Left =>  World::LEFT,
                 _ => gamestate.player.move_dir,
             };
-
             gamestate.ready_to_process_turn = match input {
                 GameInput::Step => true,
-                _ => false,
+                _ => gamestate.ready_to_process_turn,
             };
             continue;
         }
 
+        // UPDATE
+        if let Event::Loop(Loop::Update(args)) = e {
+            dbg!(args.dt);
+            dbg!(gamestate.ready_to_process_turn);
+            // this only has `dt`
+            if !gamestate.ready_to_process_turn {
+                continue;
+            }
 
+            gamestate.ready_to_process_turn = false;
 
-
-        // UPDATE MODEL
-        if gamestate.ready_to_process_turn {
-            // update position
+            // get the position we would move to
             let board_pos_to_check = {
                 let mut pos = gamestate.player.position;
                 pos = pos  + gamestate.player.move_dir * Board::TILE_WIDTH;
                 BoardPos::from(pos)
             };
+
+            // board_pos -> tile_handle
             let tile_handle = gamestate.board.get_tile_of_board_pos(board_pos_to_check);
-            let can_update_position = gamestate.board.tile_is_traversable(tile_handle);
-            if can_update_position {
+
+            // if tile_handle.isTraversable move
+            // Note: this is really a pre-emptive collision check.
+            if gamestate.board.tile_is_traversable(tile_handle) {
+                // update the position
                 gamestate.player.position += gamestate.player.move_dir;
 
                 // x-axis wrap
@@ -111,6 +119,7 @@ fn main() {
                 } else if y > y_max {
                     gamestate.player.position.y = y_min as f32;
                 }
+                println!("MOVED!!");
             }
         }
 
