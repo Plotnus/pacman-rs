@@ -123,8 +123,6 @@ fn main() {
             } else if y > y_max {
                 gamestate.player.position.y = y_min as f32;
             }
-            println!("MOVED!!");
-            }
         }
 
         // UPDATE VIEW
