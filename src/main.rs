@@ -75,9 +75,7 @@ fn main() {
         }
 
         // UPDATE
-        if let Event::Loop(Loop::Update(args)) = e {
-            dbg!(args.dt);
-            dbg!(gamestate.ready_to_process_turn);
+        if let Event::Loop(Loop::Update(_args)) = e {
             // this only has `dt`
             if !gamestate.ready_to_process_turn {
                 continue;
