@@ -123,8 +123,8 @@ fn main() {
             }
         }
 
-        // UPDATE VIEW
-        if let Some(_) = e.render_args() {
+        // RENDER
+        if let Event::Loop(Loop::Render(_args)) = e {
             //          texture.update(&mut window.encoder, &pixel_buffer).unwrap();
             window.draw_2d(&e, |context, g, _| {
                 let clear_color = [0.0, 0.0, 0.0, 1.0];
@@ -247,9 +247,8 @@ fn main() {
     }
 }
 
-struct World {}
-
 ////////////////////////////////////////////////////////////////////////////////
+struct World {}
 impl World {
     const LEFT: Vec2 = Vec2::new(-1_f32, 0_f32);
     const RIGHT: Vec2 = Vec2::new(1_f32, 0_f32);
