@@ -66,10 +66,11 @@ fn main() {
                 GameInput::Left =>  World::LEFT,
                 _ => gamestate.player.move_dir,
             };
-            gamestate.ready_to_process_turn = match input {
-                GameInput::Step => true,
-                _ => gamestate.ready_to_process_turn,
-            };
+
+            if input == GameInput::Step {
+                gamestate.ready_to_process_turn = true;
+            }
+
             continue;
         }
 
