@@ -97,30 +97,33 @@ fn main() {
 
             // if tile_handle.isTraversable move
             // Note: this is really a pre-emptive collision check.
-            if gamestate.board.tile_is_traversable(tile_handle) {
-                // update the position
-                gamestate.player.position += gamestate.player.move_dir;
+            if !gamestate.board.tile_is_traversable(tile_handle) {
+                continue;
+            }
 
-                // x-axis wrap
-                let x_min = 0;
-                let x_max = (gamestate.board.width * PIXELS_PER_TILE - 1) as i32;
-                let x = gamestate.player.position.x as i32;
-                if x < x_min {
-                    gamestate.player.position.x = x_max as f32;
-                } else if x > x_max {
-                    gamestate.player.position.x = x_min as f32;
-                }
+            // update the position
+            gamestate.player.position += gamestate.player.move_dir;
 
-                // y-axis wrap
-                let y_min = 0;
-                let y_max = (gamestate.board.height * PIXELS_PER_TILE - 1) as i32;
-                let y = gamestate.player.position.y as i32;
-                if y < y_min {
-                    gamestate.player.position.y = y_max as f32;
-                } else if y > y_max {
-                    gamestate.player.position.y = y_min as f32;
-                }
-                println!("MOVED!!");
+            // x-axis wrap
+            let x_min = 0;
+            let x_max = (gamestate.board.width * PIXELS_PER_TILE - 1) as i32;
+            let x = gamestate.player.position.x as i32;
+            if x < x_min {
+                gamestate.player.position.x = x_max as f32;
+            } else if x > x_max {
+                gamestate.player.position.x = x_min as f32;
+            }
+
+            // y-axis wrap
+            let y_min = 0;
+            let y_max = (gamestate.board.height * PIXELS_PER_TILE - 1) as i32;
+            let y = gamestate.player.position.y as i32;
+            if y < y_min {
+                gamestate.player.position.y = y_max as f32;
+            } else if y > y_max {
+                gamestate.player.position.y = y_min as f32;
+            }
+            println!("MOVED!!");
             }
         }
 
