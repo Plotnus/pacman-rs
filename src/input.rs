@@ -1,5 +1,6 @@
 use piston_window::*;
 
+#[derive(PartialEq)]
 pub enum GameInput {
     Down,
     Up,
