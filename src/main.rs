@@ -1,10 +1,10 @@
 use piston_window::*;
 
-mod vec2;
 mod board;
 mod input;
-use crate::input::*;
+mod vec2;
 use crate::board::*;
+use crate::input::*;
 
 type Vec2 = cgmath::Vector2<f32>;
 
@@ -36,10 +36,12 @@ fn main() {
         .decorated(false)
         .build()
         .unwrap();
+    window.set_ups(60);
+    window.set_max_fps(60);
 
     let x = ((board.width / 2) as f32) * Board::TILE_WIDTH;
-    let y = ((board.height / 2) as f32  + 5.5) * Board::TILE_WIDTH;
-    let player_start = Vec2::new(x,y);
+    let y = ((board.height / 2) as f32 + 5.5) * Board::TILE_WIDTH;
+    let player_start = Vec2::new(x, y);
     let player = CharacterState {
         position: player_start,
         move_dir: Vec2::new(0_f32, 0_f32),
@@ -52,30 +54,22 @@ fn main() {
         ready_to_process_turn: false,
     };
 
+    let mut input: Vec<GameInput> = Vec::new();
+
     while let Some(e) = window.next() {
-
         // INPUT
-        if let Event::Input(piston_input, _time) = e {
-            let input = GameInput::from(piston_input);
-
+        if let Event::Input(piston_input, _time) = e.clone() {
+            input.push(GameInput::from(piston_input));
             // update move dir based on input
-            gamestate.player.move_dir = match input {
-                GameInput::Down =>  World::DOWN,
-                GameInput::Up =>  World::UP,
-                GameInput::Right =>  World::RIGHT,
-                GameInput::Left =>  World::LEFT,
-                _ => gamestate.player.move_dir,
-            };
-
-            if input == GameInput::Step {
-                gamestate.ready_to_process_turn = true;
-            }
-
-            continue;
+            //continue;
         }
 
         // UPDATE
         if let Event::Loop(Loop::Update(_args)) = e {
+            // update game state based on inputs
+            process_input(&mut gamestate, &input);
+            input.clear();
+
             // this only has `dt`
             if !gamestate.ready_to_process_turn {
                 continue;
@@ -86,7 +80,7 @@ fn main() {
             // get the position we would move to
             let board_pos_to_check = {
                 let mut pos = gamestate.player.position;
-                pos = pos  + gamestate.player.move_dir * Board::TILE_WIDTH;
+                pos = pos + gamestate.player.move_dir * Board::TILE_WIDTH;
                 BoardPos::from(pos)
             };
 
@@ -140,7 +134,7 @@ fn main() {
                 for h in 0..board.num_tiles {
                     if !board.tile_is_traversable(h) {
                         let pos = board.get_local_pos_of_tile(h);
-                        const WALL_COLOR: [f32;4] = [0.0, 0.0, 0.6, 1.0 ];
+                        const WALL_COLOR: [f32; 4] = [0.0, 0.0, 0.6, 1.0];
                         draw_tile(&pos, WALL_COLOR, transform, g);
                     }
                 }
@@ -148,7 +142,7 @@ fn main() {
                 // draw tunnels
                 for h in 0..board.num_tiles {
                     if board.tile_is_tunnel(h) {
-                        const TUNNEL_COLOR: [f32;4] = [0.2, 0.2, 0.2, 1.0];
+                        const TUNNEL_COLOR: [f32; 4] = [0.2, 0.2, 0.2, 1.0];
                         let pos = board.get_local_pos_of_tile(h);
                         draw_tile(&pos, TUNNEL_COLOR, transform, g);
                     }
@@ -157,7 +151,7 @@ fn main() {
                 // draw pellets
                 for h in 0..board.num_tiles {
                     if board.tile_has_pellet(h) {
-                        const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
+                        const PELLET_COLOR: [f32; 4] = [0.8, 0.8, 0.8, 1.0];
                         const SCALE: f32 = 0.25;
                         let pos = board.get_board_pos_of_tile(h);
                         draw_circle(pos, PELLET_COLOR, SCALE, transform, g);
@@ -167,14 +161,15 @@ fn main() {
                 // draw power_pellets
                 for h in 0..board.num_tiles {
                     if board.tile_has_power_pellet(h) {
-                        const PELLET_COLOR: [f32; 4] = [0.8,0.8,0.8,1.0];
+                        const PELLET_COLOR: [f32; 4] = [0.8, 0.8, 0.8, 1.0];
                         const SCALE: f32 = 0.5;
                         let pos = board.get_board_pos_of_tile(h);
                         draw_circle(pos, PELLET_COLOR, SCALE, transform, g);
                     }
                 }
 
-                { // draw grid
+                {
+                    // draw grid
                     let grid = grid::Grid {
                         cols: gamestate.board.width as u32,
                         rows: gamestate.board.height as u32,
@@ -188,7 +183,8 @@ fn main() {
                     grid.draw(&line, &context.draw_state, context.transform, g);
                 }
 
-                { // draw player
+                {
+                    // draw player
                     // casting now saves some casts later
                     let x = gamestate.player.position.x as f64;
                     let y = gamestate.player.position.y as f64;
@@ -256,41 +252,40 @@ impl World {
     const DOWN: Vec2 = Vec2::new(0_f32, 1_f32);
 }
 ////////////////////////////////////////////////////////////////////////////////
+fn process_input(gamestate: &mut GameState, input_queue: &Vec<GameInput>) {
+    for input in input_queue {
+        gamestate.player.move_dir = match input {
+            GameInput::Down => World::DOWN,
+            GameInput::Up => World::UP,
+            GameInput::Right => World::RIGHT,
+            GameInput::Left => World::LEFT,
+            _ => gamestate.player.move_dir,
+        };
 
-pub fn draw_tile<G>(
-    pos: &Vec2,
-    color: [f32;4],
-    transform: math::Matrix2d,
-    g: &mut G)
-    where G: Graphics
+        if *input == GameInput::Step {
+            gamestate.ready_to_process_turn = true;
+        }
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+fn draw_tile<G>(pos: &Vec2, color: [f32; 4], transform: math::Matrix2d, g: &mut G)
+where
+    G: Graphics,
 {
-    let rect = [ 0.0, 0.0, Board::TILE_WIDTH as f64, Board::TILE_WIDTH as f64];
+    let rect = [0.0, 0.0, Board::TILE_WIDTH as f64, Board::TILE_WIDTH as f64];
     let transform = transform.trans(pos.x as f64, pos.y as f64);
     rectangle(color, rect, transform, g);
 }
 
-pub fn draw_circle<G>(
-    pos: BoardPos,
-    color: [f32;4],
-    scale: f32,
-    transform: math::Matrix2d,
-    g: &mut G)
-    where G: Graphics
+fn draw_circle<G>(pos: BoardPos, color: [f32; 4], scale: f32, transform: math::Matrix2d, g: &mut G)
+where
+    G: Graphics,
 {
     let w = PIXELS_PER_TILE as f64 * scale as f64;
     let h = w;
 
-    let x = (pos.x * PIXELS_PER_TILE) as f64
-          + PIXELS_PER_TILE as f64 * 0.5
-          - w * 0.5;
-    let y = (pos.y * PIXELS_PER_TILE) as f64
-          + PIXELS_PER_TILE as f64 * 0.5
-          - h * 0.5;
-    let rect: [f64;4] = [
-        x as f64,
-        y as f64,
-        w as f64,
-        h as f64,
-    ];
+    let x = (pos.x * PIXELS_PER_TILE) as f64 + PIXELS_PER_TILE as f64 * 0.5 - w * 0.5;
+    let y = (pos.y * PIXELS_PER_TILE) as f64 + PIXELS_PER_TILE as f64 * 0.5 - h * 0.5;
+    let rect: [f64; 4] = [x as f64, y as f64, w as f64, h as f64];
     Ellipse::new(color).draw(rect, &Default::default(), transform, g);
 }
