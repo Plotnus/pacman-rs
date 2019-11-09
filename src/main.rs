@@ -70,51 +70,11 @@ fn main() {
             process_input(&mut gamestate, &input);
             input.clear();
 
-            // this only has `dt`
-            if !gamestate.ready_to_process_turn {
-                continue;
+            // TODO: it would be better if this took input
+            if gamestate.ready_to_process_turn {
+                update(&mut gamestate);
             }
 
-            gamestate.ready_to_process_turn = false;
-
-            // get the position we would move to
-            let board_pos_to_check = {
-                let mut pos = gamestate.player.position;
-                pos = pos + gamestate.player.move_dir * Board::TILE_WIDTH;
-                BoardPos::from(pos)
-            };
-
-            // board_pos -> tile_handle
-            let tile_handle = gamestate.board.get_tile_of_board_pos(board_pos_to_check);
-
-            // if tile_handle.isTraversable move
-            // Note: this is really a pre-emptive collision check.
-            if !gamestate.board.tile_is_traversable(tile_handle) {
-                continue;
-            }
-
-            // update the position
-            gamestate.player.position += gamestate.player.move_dir;
-
-            // x-axis wrap
-            let x_min = 0;
-            let x_max = (gamestate.board.width * PIXELS_PER_TILE - 1) as i32;
-            let x = gamestate.player.position.x as i32;
-            if x < x_min {
-                gamestate.player.position.x = x_max as f32;
-            } else if x > x_max {
-                gamestate.player.position.x = x_min as f32;
-            }
-
-            // y-axis wrap
-            let y_min = 0;
-            let y_max = (gamestate.board.height * PIXELS_PER_TILE - 1) as i32;
-            let y = gamestate.player.position.y as i32;
-            if y < y_min {
-                gamestate.player.position.y = y_max as f32;
-            } else if y > y_max {
-                gamestate.player.position.y = y_min as f32;
-            }
         }
 
         // RENDER
@@ -265,6 +225,45 @@ fn process_input(gamestate: &mut GameState, input_queue: &Vec<GameInput>) {
         if *input == GameInput::Step {
             gamestate.ready_to_process_turn = true;
         }
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+fn update(gamestate: &mut GameState) {
+    gamestate.ready_to_process_turn = false;
+
+    // get the position we would move to
+    let board_pos_to_check = {
+        let mut pos = gamestate.player.position;
+        pos = pos + gamestate.player.move_dir * Board::TILE_WIDTH;
+        BoardPos::from(pos)
+    };
+
+    // board_pos -> tile_handle
+    let tile_handle = gamestate.board.get_tile_of_board_pos(board_pos_to_check);
+
+
+    if gamestate.board.tile_is_traversable(tile_handle) {
+        gamestate.player.position += gamestate.player.move_dir;
+    }
+
+    // x-axis wrap
+    let x_min = 0;
+    let x_max = (gamestate.board.width * PIXELS_PER_TILE - 1) as i32;
+    let x = gamestate.player.position.x as i32;
+    if x < x_min {
+        gamestate.player.position.x = x_max as f32;
+    } else if x > x_max {
+        gamestate.player.position.x = x_min as f32;
+    }
+
+    // y-axis wrap
+    let y_min = 0;
+    let y_max = (gamestate.board.height * PIXELS_PER_TILE - 1) as i32;
+    let y = gamestate.player.position.y as i32;
+    if y < y_min {
+        gamestate.player.position.y = y_max as f32;
+    } else if y > y_max {
+        gamestate.player.position.y = y_min as f32;
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
