@@ -79,125 +79,8 @@ fn main() {
 
         // RENDER
         if let Event::Loop(Loop::Render(_args)) = e {
-            //          texture.update(&mut window.encoder, &pixel_buffer).unwrap();
             window.draw_2d(&e, |context, g, _| {
-                let clear_color = [0.0, 0.0, 0.0, 1.0];
-                clear(clear_color, g);
-
-                // draw board
-                let board = &gamestate.board;
-                let transform = context
-                    .transform
-                    .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64);
-
-                // draw walls
-                for h in 0..board.num_tiles {
-                    if !board.tile_is_traversable(h) {
-                        let pos = board.get_local_pos_of_tile(h);
-                        const WALL_COLOR: [f32; 4] = [0.0, 0.0, 0.6, 1.0];
-                        draw_tile(&pos, WALL_COLOR, transform, g);
-                    }
-                }
-
-                // draw tunnels
-                for h in 0..board.num_tiles {
-                    if board.tile_is_tunnel(h) {
-                        const TUNNEL_COLOR: [f32; 4] = [0.2, 0.2, 0.2, 1.0];
-                        let pos = board.get_local_pos_of_tile(h);
-                        draw_tile(&pos, TUNNEL_COLOR, transform, g);
-                    }
-                }
-
-                // draw pellets
-                for h in 0..board.num_tiles {
-                    if board.tile_has_pellet(h) {
-                        const PELLET_COLOR: [f32; 4] = [0.8, 0.8, 0.8, 1.0];
-                        const SCALE: f32 = 0.25;
-                        let pos = board.get_board_pos_of_tile(h);
-                        draw_circle(pos, PELLET_COLOR, SCALE, transform, g);
-                    }
-                }
-
-                // draw power_pellets
-                for h in 0..board.num_tiles {
-                    if board.tile_has_power_pellet(h) {
-                        const PELLET_COLOR: [f32; 4] = [0.8, 0.8, 0.8, 1.0];
-                        const SCALE: f32 = 0.5;
-                        let pos = board.get_board_pos_of_tile(h);
-                        draw_circle(pos, PELLET_COLOR, SCALE, transform, g);
-                    }
-                }
-
-                {
-                    // draw grid
-                    let grid = grid::Grid {
-                        cols: gamestate.board.width as u32,
-                        rows: gamestate.board.height as u32,
-                        units: (Board::TILE_WIDTH * WINDOW_SCALE as f32) as f64,
-                    };
-                    let line = Line {
-                        color: [0.8, 0.8, 0.8, 1.0], // <--- grey
-                        radius: 0.5,
-                        shape: line::Shape::Round,
-                    };
-                    grid.draw(&line, &context.draw_state, context.transform, g);
-                }
-
-                {
-                    // draw player
-                    // casting now saves some casts later
-                    let x = gamestate.player.position.x as f64;
-                    let y = gamestate.player.position.y as f64;
-
-                    // draw tile pos of pacman
-                    let board_pos = BoardPos::from(gamestate.player.position);
-                    let tile = gamestate.board.get_tile_of_board_pos(board_pos);
-                    let local_pos = gamestate.board.get_local_pos_of_tile(tile);
-                    let yellow = [1.0, 1.0, 0.0, 0.5];
-                    draw_tile(&local_pos, yellow, transform, g);
-                    // draw pixel pos of pacman
-                    let red = [1.0, 0.0, 0.0, 1.0];
-                    let rect = [x, y, 1.0, 1.0];
-                    rectangle(red, rect, transform, g);
-
-                    let center_of_tile = {
-                        let board_pos = BoardPos::from(gamestate.player.position);
-                        let mut v = Vec2::new(board_pos.x as f32, board_pos.y as f32);
-                        v.x += 0.5;
-                        v.y += 0.5;
-                        v *= Board::TILE_WIDTH;
-                        v
-                    };
-
-                    // offset from center of tile
-                    let color = [0.0, 0.0, 0.0, 1.0];
-                    let scale = 1.2;
-                    let offset = 1.8;
-                    let forward = gamestate.player.move_dir;
-
-                    let transform = transform
-                        .trans(center_of_tile.x as f64, center_of_tile.y as f64)
-                        .orient(forward.x as f64, forward.y as f64)
-                        .zoom(scale)
-                        .trans(offset, 0.0);
-
-                    // we're using a triangle so the next few bits of code are about
-                    // a) defining the points of our triangle
-                    // b) drawing the lines to make the triangle
-                    let a = [1.0, 0.0];
-                    let b = [0.0, -0.8];
-                    let c = [0.0, 0.8];
-
-                    // draw
-                    let line = Line {
-                        color: color,
-                        radius: 0.4,
-                        shape: line::Shape::Round,
-                    };
-                    line.draw_from_to(a, b, &context.draw_state, transform, g);
-                    line.draw_from_to(b, c, &context.draw_state, transform, g);
-                    line.draw_from_to(c, a, &context.draw_state, transform, g);
-                }
+                render(&gamestate, context, g);
             });
         }
     }
@@ -265,6 +148,127 @@ fn update(gamestate: &mut GameState) {
     } else if y > y_max {
         gamestate.player.position.y = y_min as f32;
     }
+}
+fn render(gamestate: &GameState, context :Context, g: &mut G2d) {
+    // texture.update(&mut window.encoder, &pixel_buffer).unwrap();
+    let clear_color = [0.0, 0.0, 0.0, 1.0];
+    clear(clear_color, g);
+
+    // draw board
+    let board = &gamestate.board;
+    let transform = context
+        .transform
+        .scale(WINDOW_SCALE as f64, WINDOW_SCALE as f64);
+
+    // draw walls
+    for h in 0..board.num_tiles {
+        if !board.tile_is_traversable(h) {
+            let pos = board.get_local_pos_of_tile(h);
+            const WALL_COLOR: [f32; 4] = [0.0, 0.0, 0.6, 1.0];
+            draw_tile(&pos, WALL_COLOR, transform, g);
+        }
+    }
+
+    // draw tunnels
+    for h in 0..board.num_tiles {
+        if board.tile_is_tunnel(h) {
+            const TUNNEL_COLOR: [f32; 4] = [0.2, 0.2, 0.2, 1.0];
+            let pos = board.get_local_pos_of_tile(h);
+            draw_tile(&pos, TUNNEL_COLOR, transform, g);
+        }
+    }
+
+    // draw pellets
+    for h in 0..board.num_tiles {
+        if board.tile_has_pellet(h) {
+            const PELLET_COLOR: [f32; 4] = [0.8, 0.8, 0.8, 1.0];
+            const SCALE: f32 = 0.25;
+            let pos = board.get_board_pos_of_tile(h);
+            draw_circle(pos, PELLET_COLOR, SCALE, transform, g);
+        }
+    }
+
+    // draw power_pellets
+    for h in 0..board.num_tiles {
+        if board.tile_has_power_pellet(h) {
+            const PELLET_COLOR: [f32; 4] = [0.8, 0.8, 0.8, 1.0];
+            const SCALE: f32 = 0.5;
+            let pos = board.get_board_pos_of_tile(h);
+            draw_circle(pos, PELLET_COLOR, SCALE, transform, g);
+        }
+    }
+
+    {
+        // draw grid
+        let grid = grid::Grid {
+            cols: gamestate.board.width as u32,
+            rows: gamestate.board.height as u32,
+            units: (Board::TILE_WIDTH * WINDOW_SCALE as f32) as f64,
+        };
+        let line = Line {
+            color: [0.8, 0.8, 0.8, 1.0], // <--- grey
+            radius: 0.5,
+            shape: line::Shape::Round,
+        };
+        grid.draw(&line, &context.draw_state, context.transform, g);
+    }
+
+    {
+        // draw player
+        // casting now saves some casts later
+        let x = gamestate.player.position.x as f64;
+        let y = gamestate.player.position.y as f64;
+
+        // draw tile pos of pacman
+        let board_pos = BoardPos::from(gamestate.player.position);
+        let tile = gamestate.board.get_tile_of_board_pos(board_pos);
+        let local_pos = gamestate.board.get_local_pos_of_tile(tile);
+        let yellow = [1.0, 1.0, 0.0, 0.5];
+        draw_tile(&local_pos, yellow, transform, g);
+        // draw pixel pos of pacman
+        let red = [1.0, 0.0, 0.0, 1.0];
+        let rect = [x, y, 1.0, 1.0];
+        rectangle(red, rect, transform, g);
+
+        let center_of_tile = {
+            let board_pos = BoardPos::from(gamestate.player.position);
+            let mut v = Vec2::new(board_pos.x as f32, board_pos.y as f32);
+            v.x += 0.5;
+            v.y += 0.5;
+            v *= Board::TILE_WIDTH;
+            v
+        };
+
+        // offset from center of tile
+        let color = [0.0, 0.0, 0.0, 1.0];
+        let scale = 1.2;
+        let offset = 1.8;
+        let forward = gamestate.player.move_dir;
+
+        let transform = transform
+            .trans(center_of_tile.x as f64, center_of_tile.y as f64)
+            .orient(forward.x as f64, forward.y as f64)
+            .zoom(scale)
+            .trans(offset, 0.0);
+
+        // we're using a triangle so the next few bits of code are about
+        // a) defining the points of our triangle
+        // b) drawing the lines to make the triangle
+        let a = [1.0, 0.0];
+        let b = [0.0, -0.8];
+        let c = [0.0, 0.8];
+
+        // draw
+        let line = Line {
+            color: color,
+            radius: 0.4,
+            shape: line::Shape::Round,
+        };
+        line.draw_from_to(a, b, &context.draw_state, transform, g);
+        line.draw_from_to(b, c, &context.draw_state, transform, g);
+        line.draw_from_to(c, a, &context.draw_state, transform, g);
+    }
+
 }
 ////////////////////////////////////////////////////////////////////////////////
 fn draw_tile<G>(pos: &Vec2, color: [f32; 4], transform: math::Matrix2d, g: &mut G)
