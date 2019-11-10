@@ -57,31 +57,33 @@ fn main() {
     let mut input: Vec<GameInput> = Vec::new();
 
     while let Some(e) = window.next() {
-        // INPUT
-        if let Event::Input(piston_input, _time) = e.clone() {
-            input.push(GameInput::from(piston_input));
-            // update move dir based on input
-            //continue;
-        }
+        match e {
+            Event::Input(piston_input, _time) => {
+                input.push(GameInput::from(piston_input));
+            },
+            Event::Loop(Loop::Update(_args)) => {
+                process_input(&mut gamestate, &input);
+                input.clear();
 
-        // UPDATE
-        if let Event::Loop(Loop::Update(_args)) = e {
-            // update game state based on inputs
-            process_input(&mut gamestate, &input);
-            input.clear();
-
-            // TODO: it would be better if this took input
-            if gamestate.ready_to_process_turn {
-                update(&mut gamestate);
-            }
-
-        }
-
-        // RENDER
-        if let Event::Loop(Loop::Render(_args)) = e {
-            window.draw_2d(&e, |context, g, _| {
-                render(&gamestate, context, g);
-            });
+                // TODO: it would be better if this took input
+                if gamestate.ready_to_process_turn {
+                    update(&mut gamestate);
+                }
+            },
+            Event::Loop(Loop::Render(_args)) => {
+                window.draw_2d(&e, |context, g, _| {
+                    render(&gamestate, context, g);
+                });
+            },
+            Event::Loop(Loop::AfterRender(_args)) => { 
+                ()
+            },
+            Event::Loop(Loop::Idle(_args)) => { 
+                ()
+            },
+            Event::Custom(_,_,_) => {
+                ()
+            },
         }
     }
 }
