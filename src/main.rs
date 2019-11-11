@@ -56,7 +56,14 @@ fn main() {
 
     let mut input: Vec<GameInput> = Vec::new();
 
+    let frames_per_second = 60.0;
+    let frame_duration_target = std::time::Duration::from_secs_f64(1.0 / frames_per_second);
+    dbg!(frame_duration_target);
+
+
     while let Some(e) = window.next() {
+        let frame_start_time = std::time::Instant::now();
+
         match e {
             Event::Input(piston_input, _time) => {
                 input.push(GameInput::from(piston_input));
@@ -85,6 +92,13 @@ fn main() {
                 ()
             },
         }
+
+        let frame_duration = frame_start_time.elapsed();
+        println!("FrameDuration: {}ns, TargetDuration: {}ns, OverBudget: {}"
+            ,frame_duration.as_nanos()
+            ,frame_duration_target.as_nanos()
+            ,frame_duration > frame_duration_target
+        );
     }
 }
 

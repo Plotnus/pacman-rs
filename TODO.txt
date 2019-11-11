@@ -1,7 +1,8 @@
-[ ] use a match statement for piston events
+[x] use a match statement for piston events
   [x] move render stuff into own fn
   [x] move input stuff into own fn
   [x] move update stuff into own fn
+[ ] speed up rendering
 [ ] look into how this changes if we used SDL2
 [ ] PixelPosition is useful for _this_ game put it back in
 [ ] The issue is more about splitting out the rendering code and cleaning that up.
