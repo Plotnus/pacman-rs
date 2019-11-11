@@ -10,6 +10,11 @@ pub enum GameInput {
     Nil,
 }
 
+impl From<&keyboard::Key> for GameInput {
+    fn from(key: &keyboard::Key) -> GameInput {
+        GameInput::from(*key)
+    }
+}
 impl From<keyboard::Key> for GameInput {
     fn from(key: keyboard::Key) -> GameInput {
         return match key {

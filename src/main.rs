@@ -54,45 +54,24 @@ fn main() {
         ready_to_process_turn: false,
     };
 
-    let mut input: Vec<GameInput> = Vec::new();
-
     let frames_per_second = 60.0;
     let frame_duration_target = std::time::Duration::from_secs_f64(1.0 / frames_per_second);
     dbg!(frame_duration_target);
 
 
-    while let Some(e) = window.next() {
+    while !window.should_close() {
+
         let frame_start_time = std::time::Instant::now();
 
-        match e {
-            Event::Input(piston_input, _time) => {
-                input.push(GameInput::from(piston_input));
-            },
-            Event::Loop(Loop::Update(_args)) => {
-                process_input(&mut gamestate, &input);
-                input.clear();
+        let input_stream = get_input_stream(&mut window);
 
-                // TODO: it would be better if this took input
-                if gamestate.ready_to_process_turn {
-                    update(&mut gamestate);
-                }
-            },
-            Event::Loop(Loop::Render(_args)) => {
-                window.draw_2d(&e, |context, g, _| {
-                    render(&gamestate, context, g);
-                });
-            },
-            Event::Loop(Loop::AfterRender(_args)) => { 
-                ()
-            },
-            Event::Loop(Loop::Idle(_args)) => { 
-                ()
-            },
-            Event::Custom(_,_,_) => {
-                ()
-            },
-        }
+        gamestate = process_input_stream(gamestate, input_stream);
 
+        gamestate = step(gamestate);
+
+        render(&mut window, &gamestate);
+
+        // IDLE - IDLE - IDLE
         let frame_duration = frame_start_time.elapsed();
         println!("FrameDuration: {}ns, TargetDuration: {}ns, OverBudget: {}"
             ,frame_duration.as_nanos()
@@ -111,7 +90,7 @@ impl World {
     const DOWN: Vec2 = Vec2::new(0_f32, 1_f32);
 }
 ////////////////////////////////////////////////////////////////////////////////
-fn process_input(gamestate: &mut GameState, input_queue: &Vec<GameInput>) {
+fn process_input_stream(mut gamestate: GameState, input_queue: Vec<GameInput>) -> GameState{
     for input in input_queue {
         gamestate.player.move_dir = match input {
             GameInput::Down => World::DOWN,
@@ -121,14 +100,43 @@ fn process_input(gamestate: &mut GameState, input_queue: &Vec<GameInput>) {
             _ => gamestate.player.move_dir,
         };
 
-        if *input == GameInput::Step {
+        if input == GameInput::Step {
             gamestate.ready_to_process_turn = true;
         }
     }
+    gamestate
+}
+fn get_input_stream(window: &mut PistonWindow) -> Vec<GameInput> {
+    let mut piston_keyboard_presses = Vec::new();
+    while let Some(e) = window.poll_event() {
+        match e {
+            Event::Input(piston_input, _time) => {
+                if let Input::Button(button_args) = piston_input {
+                    if button_args.state == ButtonState::Press {
+                        if let Button::Keyboard(key) = button_args.button {
+                            piston_keyboard_presses.push(key);
+                        }
+                    }
+                }
+            },
+            _ => {
+                println!("ERROR: We should only get input events in this loop, got event {:?}", &e);
+                assert!(false);
+            },
+        }
+    }
+
+    piston_keyboard_presses.iter()
+        .map(|piston_input| { GameInput::from(piston_input) })
+        .collect()
 }
 ////////////////////////////////////////////////////////////////////////////////
-fn update(gamestate: &mut GameState) {
+fn step(mut gamestate: GameState) -> GameState {
+    if !gamestate.ready_to_process_turn {
+        return gamestate;
+    }
     gamestate.ready_to_process_turn = false;
+
 
     // get the position we would move to
     let board_pos_to_check = {
@@ -164,8 +172,19 @@ fn update(gamestate: &mut GameState) {
     } else if y > y_max {
         gamestate.player.position.y = y_min as f32;
     }
+
+    gamestate
 }
-fn render(gamestate: &GameState, context :Context, g: &mut G2d) {
+
+fn render(window: &mut PistonWindow, gamestate: &GameState) {
+    if let Some(e) = window.next() {
+        window.draw_2d(&e, |context, g, _| {
+            render_gamestate(&gamestate, context, g);
+        });
+    }
+}
+
+fn render_gamestate(gamestate: &GameState, context :Context, g: &mut G2d) {
     // texture.update(&mut window.encoder, &pixel_buffer).unwrap();
     let clear_color = [0.0, 0.0, 0.0, 1.0];
     clear(clear_color, g);

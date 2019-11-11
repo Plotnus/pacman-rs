@@ -2,7 +2,7 @@
   [x] move render stuff into own fn
   [x] move input stuff into own fn
   [x] move update stuff into own fn
-[ ] speed up rendering
+[ ] Sort out `render` section of code. We want to render once per frame.
 [ ] look into how this changes if we used SDL2
 [ ] PixelPosition is useful for _this_ game put it back in
 [ ] The issue is more about splitting out the rendering code and cleaning that up.
