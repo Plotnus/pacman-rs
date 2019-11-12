@@ -3,7 +3,8 @@
   [x] move input stuff into own fn
   [x] move update stuff into own fn
 [ ] Sort out `render` section of code. We want to render once per frame.
-[ ] look into how this changes if we used SDL2
+[ ] switch to SDL2 and draw to canvas
+[ ] sort separate world coords from render to make things more natural
 [ ] PixelPosition is useful for _this_ game put it back in
 [ ] The issue is more about splitting out the rendering code and cleaning that up.
 [ ] fix this wonky position thing where coords are in the corner... it's annoying to deal with
