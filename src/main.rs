@@ -25,6 +25,9 @@ const WINDOW_SCALE: usize = 3;
 fn main() {
     let board = Board::new();
 
+    // play_sound - this is just introducing code for playing a sound
+    println!("{:?}", play_sound());
+
     let num_px_wide = board.width * PIXELS_PER_TILE * WINDOW_SCALE;
     let num_px_high = board.height * PIXELS_PER_TILE * WINDOW_SCALE;
     let window_size = (num_px_wide as u32, num_px_high as u32);
@@ -326,4 +329,88 @@ where
     let y = (pos.y * PIXELS_PER_TILE) as f64 + PIXELS_PER_TILE as f64 * 0.5 - h * 0.5;
     let rect: [f64; 4] = [x as f64, y as f64, w as f64, h as f64];
     Ellipse::new(color).draw(rect, &Default::default(), transform, g);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// NOTE: This section was taken fram the sdl2 example for audio-wav.rs
+// TODO: investigate using the mixer feature
+struct Sound {
+    data: Vec<u8>,
+    volume: f32,
+    pos: usize,
+}
+
+impl sdl2::audio::AudioCallback for Sound {
+    type Channel = u8;
+
+    fn callback(&mut self, out: &mut [u8]) {
+        for dst in out.iter_mut() {
+            // With channel type u8 the "silence" value is 128 (middle of the 0-2^8 range) so we need
+            // to both fill in the silence and scale the wav data accordingly. Filling the silence
+            // once the wav is finished is trivial, applying the volume is more tricky. We need to:
+            // * Change the range of the values from [0, 255] to [-128, 127] so we can multiply
+            // * Apply the volume by multiplying, this gives us range [-128*volume, 127*volume]
+            // * Move the resulting range to a range centered around the value 128, the final range
+            //   is [128 - 128*vlume, 128 + 127*volume] – scaled and correctly positioned
+            //
+            // Using value 0 instead of 128 would result in clicking. Scaling by simply multiplying
+            // would not give correct results.
+            let pre_scale = *self.data.get(self.pos).unwrap_or(&128);
+            let scaled_signed_float = (pre_scale as f32 - 128.0) * self.volume;
+            let scaled = (scaled_signed_float + 128.0) as u8;
+            *dst = scaled;
+            self.pos += 1;
+        }
+    }
+}
+
+fn play_sound() -> std::result::Result<(), std::string::String> {
+    use std::borrow::Cow;
+    use std::path::{PathBuf, Path};
+
+    let path = std::env::current_dir().unwrap();
+    println!("The current directory is {}", path.display());
+
+    let path = Path::new("./");
+    dbg!(path.file_stem());
+    dbg!(path.file_name());
+
+    let wav_file : Cow<'static, Path> = match std::env::args().nth(1) {
+        None => Cow::from(Path::new("./assets/sounds/pacman-begin.wav")),
+        Some(s) => Cow::from(PathBuf::from(s))
+    };
+
+    let sdl_context = sdl2::init()?;
+    let audio_subsystem = sdl_context.audio()?;
+    let desired_spec = sdl2::audio::AudioSpecDesired {
+        freq: Some(44_100),
+        channels: Some(1), // mono
+        samples: None, // default
+    };
+
+    let audio_device = audio_subsystem.open_playback(None, &desired_spec, |spec| {
+        let wav = sdl2::audio::AudioSpecWAV::load_wav(wav_file)
+            .expect("Could not load test WAV file");
+
+        let cvt = sdl2::audio::AudioCVT::new(
+                wav.format, wav.channels, wav.freq,
+                spec.format, spec.channels, spec.freq)
+            .expect("Could not convert WAV file");
+
+        let data = cvt.convert(wav.buffer().to_vec());
+
+        // initialize the audio callback
+        Sound {
+            data: data,
+            volume: 0.25,
+            pos: 0,
+        }
+    })?;
+
+    // start playback
+    audio_device.resume();
+    // sleep while it plays
+    std::thread::sleep(std::time::Duration::from_secs_f64(4.0));
+
+    Ok(())
 }
