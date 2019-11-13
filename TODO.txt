@@ -13,3 +13,4 @@
     - or maybe we just ditch the idea of pixel and say 1px = 1unit so we can 'measure' pacman
     - By doing this we save all the actual pixel stuff for rendering which is where it belongs
 [ ] Start using png for stuff
+[ ] play sounds while game loop runs
