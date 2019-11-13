@@ -22,12 +22,16 @@ struct GameState {
 const PIXELS_PER_TILE: usize = 8;
 const WINDOW_SCALE: usize = 3;
 
-fn main() {
+fn main() -> std::result::Result<(), std::string::String> {
+    let path = std::env::current_dir().unwrap();
+    println!("The current directory is {}", path.display());
+
+    let path = std::path::Path::new("./");
+    dbg!(path.file_stem());
+    dbg!(path.file_name());
+
+    // setup the board
     let board = Board::new();
-
-    // play_sound - this is just introducing code for playing a sound
-    println!("{:?}", play_sound());
-
     let num_px_wide = board.width * PIXELS_PER_TILE * WINDOW_SCALE;
     let num_px_high = board.height * PIXELS_PER_TILE * WINDOW_SCALE;
     let window_size = (num_px_wide as u32, num_px_high as u32);
@@ -42,6 +46,15 @@ fn main() {
     window.set_ups(60);
     window.set_max_fps(60);
 
+    // initialize audio
+    let sdl_context = sdl2::init()?;
+    let mut audio_subsystem = sdl_context.audio()?;
+
+    // play_sound - this is just introducing code for playing a sound
+    let audio_device = play_sound(&mut audio_subsystem)?;
+    audio_device.resume();
+
+    // initialize game
     let x = ((board.width / 2) as f32) * Board::TILE_WIDTH;
     let y = ((board.height / 2) as f32 + 5.5) * Board::TILE_WIDTH;
     let player_start = Vec2::new(x, y);
@@ -82,6 +95,7 @@ fn main() {
             ,frame_duration > frame_duration_target
         );
     }
+    Ok(())
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -361,27 +375,22 @@ impl sdl2::audio::AudioCallback for Sound {
             *dst = scaled;
             self.pos += 1;
         }
+        println!("running audio");
     }
 }
 
-fn play_sound() -> std::result::Result<(), std::string::String> {
+
+fn play_sound(audio_subsystem: &mut sdl2::AudioSubsystem)
+    -> std::result::Result<sdl2::audio::AudioDevice<Sound>, std::string::String>
+{
     use std::borrow::Cow;
     use std::path::{PathBuf, Path};
-
-    let path = std::env::current_dir().unwrap();
-    println!("The current directory is {}", path.display());
-
-    let path = Path::new("./");
-    dbg!(path.file_stem());
-    dbg!(path.file_name());
 
     let wav_file : Cow<'static, Path> = match std::env::args().nth(1) {
         None => Cow::from(Path::new("./assets/sounds/pacman-begin.wav")),
         Some(s) => Cow::from(PathBuf::from(s))
     };
 
-    let sdl_context = sdl2::init()?;
-    let audio_subsystem = sdl_context.audio()?;
     let desired_spec = sdl2::audio::AudioSpecDesired {
         freq: Some(44_100),
         channels: Some(1), // mono
@@ -407,10 +416,5 @@ fn play_sound() -> std::result::Result<(), std::string::String> {
         }
     })?;
 
-    // start playback
-    audio_device.resume();
-    // sleep while it plays
-    std::thread::sleep(std::time::Duration::from_secs_f64(4.0));
-
-    Ok(())
+    Ok(audio_device)
 }

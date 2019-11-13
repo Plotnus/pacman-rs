@@ -14,3 +14,5 @@
     - By doing this we save all the actual pixel stuff for rendering which is where it belongs
 [ ] Start using png for stuff
 [ ] play sounds while game loop runs
+[ ] RENDERING: the window size shouldn't depend on the board size. fix it.
+[ ] AUDIO: audio cb should stop playing once oudio finishes
