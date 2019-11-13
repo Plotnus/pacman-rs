@@ -1,18 +1,14 @@
-[x] use a match statement for piston events
-  [x] move render stuff into own fn
-  [x] move input stuff into own fn
-  [x] move update stuff into own fn
-[ ] Sort out `render` section of code. We want to render once per frame.
-[ ] switch to SDL2 and draw to canvas
-[ ] sort separate world coords from render to make things more natural
-[ ] PixelPosition is useful for _this_ game put it back in
-[ ] The issue is more about splitting out the rendering code and cleaning that up.
-[ ] fix this wonky position thing where coords are in the corner... it's annoying to deal with
-[ ] Work on doing something about that Pixel data and pulling it out of game logic
-    - maybe we have logical pixels, and raster pixel.
-    - or maybe we just ditch the idea of pixel and say 1px = 1unit so we can 'measure' pacman
-    - By doing this we save all the actual pixel stuff for rendering which is where it belongs
-[ ] Start using png for stuff
-[ ] play sounds while game loop runs
-[ ] RENDERING: the window size shouldn't depend on the board size. fix it.
+[ ] GAME: fix this wonky position thing where coords are in the corner... it's annoying to deal with
+[ ] GAME: Work on doing something about that Pixel data and pulling it out of game logic
+[ ] GAME|RENDER: sort separate world coords from render to make things more natural
+[ ] GAME|RENDER: do better separation of game and rendering
 [ ] AUDIO: audio cb should stop playing once oudio finishes
+[x] AUDIO: play sounds while game loop runs
+[ ] AUDIO: define an MVP
+[ ] AUDIO: implement MVP
+    [ ] SoundAsset - a read only buffer of data loaded from a file
+    [ ] Way to play multiple sounds
+[ ] RENDERING: Start using png for stuff
+[ ] RENDERING: the window size shouldn't depend on the board size. fix it.
+[ ] RENDERING: Sort out `render` section of code. We want to render once per frame.
+[ ] RENDERING: switch to SDL2 and draw to canvas
