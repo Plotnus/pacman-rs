@@ -15,7 +15,11 @@ fn main() -> std::result::Result<(), std::string::String> {
         .build()
         .unwrap();
 
+    let target_fps = 60.0;
+    let target_frame_duration = std::time::Duration::from_secs_f64(1.0 / target_fps);
+
     'mainloop: loop {
+        let frame_start_time = std::time::Instant::now();
 
         for event in event_pump.poll_iter() {
             match event {
@@ -26,6 +30,23 @@ fn main() -> std::result::Result<(), std::string::String> {
                 _ => {}
             }
         }
+
+        // idle
+        if frame_start_time.elapsed() > target_frame_duration {
+            let elapsed_time = frame_start_time.elapsed().as_secs_f64();
+            let target_time = target_frame_duration.as_secs_f64();
+            println!("WARNING: OVER TIME BUDGET BY {:.2}%)" ,(elapsed_time / target_time) - 1.0);
+        } else {
+            // waste time
+            // reason added: this is much more accurate than a call to `std::thread::sleep`
+            // a goal of this engine is a high level of precision on per frame updates
+            while frame_start_time.elapsed() < target_frame_duration {
+            }
+        }
+
+        println!("FPS: {:.2}", 1.0 / frame_start_time.elapsed().as_secs_f64());
+        dbg!(frame_start_time.elapsed().as_micros());
+        
     }
 
     Ok(())
