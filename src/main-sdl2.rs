@@ -5,5 +5,15 @@ fn main() -> std::result::Result<(), std::string::String> {
     dbg!(cache_line_size);
     dbg!(num_cpus);
 
+    let sdl_context = sdl2::init()?;
+    let mut event_pump = sdl_context.event_pump()?;
+
+    let start_time = std::time::Instant::now();
+    while start_time.elapsed() < std::time::Duration::from_secs(2) {
+        for event in event_pump.poll_iter() {
+            dbg!(event);
+        }
+    }
+
     Ok(())
 }
