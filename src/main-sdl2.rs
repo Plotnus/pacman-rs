@@ -18,7 +18,14 @@ fn main() -> std::result::Result<(), std::string::String> {
     let start_time = std::time::Instant::now();
     while start_time.elapsed() < std::time::Duration::from_secs(2) {
         for event in event_pump.poll_iter() {
-            dbg!(event);
+            match event {
+                sdl2::event::Event::Quit {..}
+                | sdl2::event::Event::KeyDown { keycode: Some(sdl2::keyboard::Keycode::Escape), .. }
+                => {
+                    return Ok(())
+                },
+                _ => {()}
+            }
         }
     }
 
