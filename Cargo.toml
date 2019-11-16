@@ -12,5 +12,12 @@ rand = "0.6.5"
 cgmath = "0.17.0"
 
 [[bin]]
-name = "pacman"
-path = "src/main.rs"
+# p is for piston - this is a personal project so w.e.
+name = "p"
+path = "src/main-piston.rs"
+
+[[bin]]
+# s is for sdl2 - this is a personal project so w.e.
+name = "s"
+path = "src/main-sdl2.rs"
+
