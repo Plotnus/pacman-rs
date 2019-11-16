@@ -15,16 +15,15 @@ fn main() -> std::result::Result<(), std::string::String> {
         .build()
         .unwrap();
 
-    let start_time = std::time::Instant::now();
-    while start_time.elapsed() < std::time::Duration::from_secs(2) {
+    'mainloop: loop {
+
         for event in event_pump.poll_iter() {
             match event {
-                sdl2::event::Event::Quit {..}
-                | sdl2::event::Event::KeyDown { keycode: Some(sdl2::keyboard::Keycode::Escape), .. }
-                => {
-                    return Ok(())
-                },
-                _ => {()}
+                sdl2::event::Event::Quit {..} => {println!("Event::Quit"); break 'mainloop},
+                sdl2::event::Event::AppTerminating {..} => {dbg!(event);},
+                sdl2::event::Event::Window { win_event, ..} => {dbg!(win_event);},
+                sdl2::event::Event::KeyDown{ keycode: Some(keycode), .. } => {dbg!(keycode);},
+                _ => {}
             }
         }
     }
