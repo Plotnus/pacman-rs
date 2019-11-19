@@ -1,3 +1,4 @@
+use sdl2::image::LoadTexture;
 
 fn main() -> std::result::Result<(), std::string::String> {
     let cache_line_size = sdl2::cpuinfo::cpu_cache_line_size();
@@ -10,10 +11,22 @@ fn main() -> std::result::Result<(), std::string::String> {
     let mut event_pump = sdl_context.event_pump()?;
 
     let video_subsystem = sdl_context.video()?;
-    let _window = video_subsystem.window("fun times", 1270, 720)
+    let window = video_subsystem.window("fun times", 1270, 720)
         .position_centered()
         .build()
         .unwrap();
+
+    // lets load some png :)_
+    let _image_context = sdl2::image::init(sdl2::image::InitFlag::PNG | sdl2::image::InitFlag::JPG)?;
+    let mut canvas = window.into_canvas().software().build().map_err(|e| e.to_string())?;
+    let texture_creator = canvas.texture_creator();
+    let png = std::path::Path::new("/Users/plot/pg/pacman/assets/sprites/power-pellet.png");
+    let texture = texture_creator.load_texture(png)?;
+    canvas.clear();
+    canvas.copy(&texture, None, None)?;
+    canvas.present();
+
+
 
     let target_fps = 60.0;
     let target_frame_duration = std::time::Duration::from_secs_f64(1.0 / target_fps);

@@ -43,54 +43,14 @@ fn main() -> std::result::Result<(), std::string::String> {
     window.set_ups(60);
     window.set_max_fps(60);
 
-    //{
-        // SDL initialize audio
-        let sdl_context = sdl2::init()?;
-        let mut audio_subsystem = sdl_context.audio()?;
-        let video_subsystem = sdl_context.video()?;
-        let sdl_window = video_subsystem.window("p a c m a n", num_px_wide as u32, num_px_high as u32,)
-            .build()
-            .unwrap();
+    // SDL initialize audio
+    let sdl_context = sdl2::init()?;
+    let mut audio_subsystem = sdl_context.audio()?;
 
-        let mut canvas: sdl2::render::Canvas<sdl2::video::Window> = sdl_window.into_canvas()
-            .present_vsync()
-            .build()
-            .unwrap();
+    // play_sound - this is just introducing code for playing a sound
+    let audio_device = play_sound(&mut audio_subsystem)?;
+    audio_device.resume();
 
-        canvas.set_draw_color(sdl2::pixels::Color::RGB(0,255,255));
-        canvas.clear();
-        canvas.present();
-
-        // lets create a texture
-        let texture_creator = canvas.texture_creator();
-        let texture_format = sdl2::pixels::PixelFormatEnum::RGB888;
-        let mut texture = texture_creator.create_texture(
-            texture_format,
-            sdl2::render::TextureAccess::Streaming,
-            28 * 8, // width
-            31 * 8, // height
-        ).unwrap();
-        texture.with_lock(None, |buffer: &mut [u8], pitch: usize| {
-            for y in 0..31*8 {
-                for x in 0..28*8 {
-                    let offset = y*pitch + x*3;
-                    buffer[offset] = x as u8;
-                    buffer[offset + 1] = y as u8;
-                    buffer[offset + 2] = 0;
-                }
-            }
-        })?;
-
-       canvas.copy(&texture, None, Some(sdl2::rect::Rect::new(100,100,256,512)))?; 
-       canvas.present();
-        
-
-        // play_sound - this is just introducing code for playing a sound
-        let audio_device = play_sound(&mut audio_subsystem)?;
-        audio_device.resume();
-
-        //std::thread::sleep(std::time::Duration::from_millis(4000));
-    //}
 
     // initialize game
     let x = ((board.width / 2) as f32) * Board::TILE_WIDTH;

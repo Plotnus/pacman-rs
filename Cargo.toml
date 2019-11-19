@@ -5,11 +5,15 @@ authors = ["plot <plotnus@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-sdl2 = "*"
 piston = "0.42.0"
 piston_window = "*"
 rand = "0.6.5"
 cgmath = "0.17.0"
+
+[dependencies.sdl2]
+version = "*"
+default-features = false
+features = ["image"]
 
 [[bin]]
 # p is for piston - this is a personal project so w.e.
