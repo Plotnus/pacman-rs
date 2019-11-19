@@ -1,5 +1,12 @@
 use sdl2::image::LoadTexture;
 
+mod board;
+use crate::board::*;
+
+mod vec2;
+type Vec2 = cgmath::Vector2<f32>;
+
+
 fn main() -> std::result::Result<(), std::string::String> {
     let cache_line_size = sdl2::cpuinfo::cpu_cache_line_size();
     let num_cpus = sdl2::cpuinfo::cpu_count();
@@ -11,25 +18,19 @@ fn main() -> std::result::Result<(), std::string::String> {
     let mut event_pump = sdl_context.event_pump()?;
 
     let video_subsystem = sdl_context.video()?;
-    let window = video_subsystem.window("fun times", 1270, 720)
+    let window = video_subsystem.window("fun times", 1280, 720)
         .position_centered()
         .build()
         .unwrap();
-
-    // lets load some png :)_
     let _image_context = sdl2::image::init(sdl2::image::InitFlag::PNG | sdl2::image::InitFlag::JPG)?;
     let mut canvas = window.into_canvas().software().build().map_err(|e| e.to_string())?;
-    let texture_creator = canvas.texture_creator();
-    let png = std::path::Path::new("/Users/plot/pg/pacman/assets/sprites/power-pellet.png");
-    let texture = texture_creator.load_texture(png)?;
-    canvas.clear();
-    canvas.copy(&texture, None, None)?;
-    canvas.present();
-
-
 
     let target_fps = 60.0;
     let target_frame_duration = std::time::Duration::from_secs_f64(1.0 / target_fps);
+
+
+    // Section: GameSpecific
+    let board = Board::new();
 
     'mainloop: loop {
         let frame_start_time = std::time::Instant::now();
@@ -43,6 +44,10 @@ fn main() -> std::result::Result<(), std::string::String> {
                 _ => {}
             }
         }
+
+        // render board
+        render_board(&mut canvas, &board);
+        canvas.present();
 
         // idle
         if frame_start_time.elapsed() > target_frame_duration {
@@ -63,4 +68,20 @@ fn main() -> std::result::Result<(), std::string::String> {
     }
 
     Ok(())
+}
+
+fn render_board(canvas: &mut sdl2::render::Canvas<sdl2::video::Window>, board: &Board) {
+    const PX_WIDE: u32 = 8;
+    const PX_HIGH: u32 = 8;
+    canvas.info().max_texture_width()
+    for h in 0..board.num_tiles {
+        if !board.tile_is_traversable(h) {
+            let pos = board.get_local_pos_of_tile(h);
+            canvas.set_draw_color(sdl2::pixels::Color::RGB(0,0,150));
+            let rect = sdl2::rect::Rect::new(
+                pos.x as i32, pos.y as i32, PX_WIDE, PX_HIGH
+            );
+            canvas.fill_rect(rect).unwrap();
+        }
+    }
 }
