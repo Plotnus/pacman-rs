@@ -24,9 +24,9 @@ const MAZE_DEF: &str = "\
                     XXXXXX.XX          XX.XXXXXX\
                     XXXXXX.XX XXXXXXXX XX.XXXXXX\
                     XXXXXX.XX XXXXXXXX XX.XXXXXX\
-                    X............  ............X\
-                    X.XXXX.XXXXX.XX.XXXXXXXXXX.X\
-                    X.XXXX.XXXXX.XX.XXXXXXXXXX.X\
+                    X............XX............X\
+                    X.XXXX.XXXXX.XX.XXXXX.XXXX.X\
+                    X.XXXX.XXXXX.XX.XXXXX.XXXX.X\
                     Xo..XX.......  .......XX..oX\
                     XXX.XX.XX.XXXXXXXX.XX.XX.XXX\
                     XXX.XX.XX.XXXXXXXX.XX.XX.XXX\
