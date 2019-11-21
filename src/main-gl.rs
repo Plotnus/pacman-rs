@@ -28,8 +28,12 @@ fn main() -> Result<(),String> {
         for event in events.poll_iter() {
 
             match event {
-                sdl2::event::Event::Quit{..} => break 'main,
-                _ => {},
+                sdl2::event::Event::Quit{..}
+                  => break 'main,
+                sdl2::event::Event::KeyDown { keycode: Some(sdl2::keyboard::Keycode::Escape), ..}
+                  => break 'main,
+                _
+                  => {},
             }
         }
     }
