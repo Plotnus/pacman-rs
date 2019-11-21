@@ -25,3 +25,8 @@ path = "src/main-piston.rs"
 name = "s"
 path = "src/main-sdl2.rs"
 
+[[bin]]
+# gl - is for openGL this is for practice with a rendering context
+name = "gl"
+path = "src/main-gl.rs"
+
