@@ -15,13 +15,8 @@ version = "*"
 default-features = false
 features = ["image"]
 
-[[bin]]
-# p is for piston - this is a personal project so w.e.
-name = "p"
-path = "src/main-piston.rs"
 
 [[bin]]
-# s is for sdl2 - this is a personal project so w.e.
 name = "s"
 path = "src/main-sdl2.rs"
 
