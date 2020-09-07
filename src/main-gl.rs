@@ -1,6 +1,8 @@
 extern crate gl;
 extern crate sdl2;
 
+use std::ffi::{CStr, CString};
+
 use std::result::Result;
 use std::string::String;
 
@@ -9,7 +11,13 @@ fn main() -> Result<(), String> {
     const SCREEN_HEIGHT: u32 = 720;
 
     let sdl_context = sdl2::init()?;
+
     let sdl_video = sdl_context.video()?;
+
+    let gl_attr = sdl_video.gl_attr();
+    gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
+    gl_attr.set_context_version(4, 5);
+
     let sdl_window = sdl_video
         .window("gl", SCREEN_WIDTH, SCREEN_HEIGHT)
         .position_centered()
@@ -17,13 +25,8 @@ fn main() -> Result<(), String> {
         .build()
         .map_err(|e| e.to_string())?;
 
-    let mut canvas = sdl_window
-        .into_canvas()
-        .build()
-        .map_err(|e| e.to_string())?;
-    canvas.set_draw_color(sdl2::pixels::Color::RGB(0, 0, 0));
-    canvas.clear();
-    canvas.present();
+    let _gl_context = sdl_window.gl_create_context().unwrap();
+    let _gl = gl::load_with(|s| sdl_video.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
     let mut events = sdl_context.event_pump()?;
 
@@ -40,10 +43,11 @@ fn main() -> Result<(), String> {
     ];
     let mut color_cycler = colors.iter().cycle();
 
-
     'main: loop {
         let frame_start_time = std::time::Instant::now();
 
+        //////////////////////////////////////////
+        // INPUT
         for event in events.poll_iter() {
             match event {
                 sdl2::event::Event::Quit { .. } => break 'main,
@@ -54,10 +58,20 @@ fn main() -> Result<(), String> {
                 _ => {}
             }
         }
-
-        canvas.set_draw_color(*color_cycler.next().unwrap());
-        canvas.clear();
-        canvas.present();
+        //////////////////////////////////////////
+        // UPDATE
+        //////////////////////////////////////////
+        // RENDER
+        unsafe {
+            let color = color_cycler.next().unwrap();
+            let r = color.r as f32 / 255.0;
+            let g = color.g as f32 / 255.0;
+            let b = color.b as f32 / 255.0;
+            gl::Viewport(0, 0, SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32);
+            gl::ClearColor(r, g, b, 1.0);
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+        }
+        sdl_window.gl_swap_window();
 
         // wait out the frame
         if frame_start_time.elapsed() > target_frame_duration {
@@ -75,4 +89,65 @@ fn main() -> Result<(), String> {
     }
 
     Ok(())
+}
+
+fn _shader_from_source(
+    source: &CStr,
+    shader_type: gl::types::GLuint,
+) -> Result<gl::types::GLuint, String> {
+    let shader_handle = unsafe { gl::CreateShader(shader_type) };
+
+    unsafe {
+        // set shader source
+        gl::ShaderSource(shader_handle, 1, &source.as_ptr(), std::ptr::null());
+
+        // compile the shader
+        gl::CompileShader(shader_handle);
+    }
+
+    let mut did_compilation_succeed: gl::types::GLint = 0;
+    unsafe {
+        gl::GetShaderiv(
+            shader_handle,
+            gl::COMPILE_STATUS,
+            &mut did_compilation_succeed,
+        );
+    }
+
+    let did_compilation_succeed = unsafe {
+        let mut status = 0;
+        gl::GetShaderiv(shader_handle, gl::COMPILE_STATUS, &mut status);
+        status != 0
+    };
+
+    if !did_compilation_succeed {
+        // gl error buffer contents -> String
+        let gl_log_length = unsafe {
+            let mut gl_log_length: gl::types::GLint = 0;
+            gl::GetShaderiv(shader_handle, gl::INFO_LOG_LENGTH, &mut gl_log_length);
+            gl_log_length as usize
+        };
+
+        let error_msg: String = unsafe {
+            let error_msg: CString = {
+                let mut buffer: Vec<u8> = vec![b' '; gl_log_length + 1];
+                buffer[gl_log_length] = 0;
+                CString::from_vec_unchecked(buffer)
+            };
+
+            // populate the message
+            gl::GetShaderInfoLog(
+                shader_handle,
+                gl_log_length as gl::types::GLint,
+                std::ptr::null_mut(),
+                error_msg.as_ptr() as *mut gl::types::GLchar,
+            );
+
+            error_msg.to_string_lossy().into_owned()
+        };
+
+        return Err(error_msg);
+    }
+
+    Ok(shader_handle)
 }
