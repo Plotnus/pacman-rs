@@ -39,6 +39,7 @@ fn main() -> std::result::Result<(), std::string::String> {
     'mainloop: loop {
         let frame_start_time = std::time::Instant::now();
 
+        // Handle SDL2 Events
         for event in event_pump.poll_iter() {
             match event {
                 sdl2::event::Event::Quit { .. } => {
@@ -69,10 +70,10 @@ fn main() -> std::result::Result<(), std::string::String> {
         if frame_start_time.elapsed() > target_frame_duration {
             let elapsed_time = frame_start_time.elapsed().as_secs_f64();
             let target_time = target_frame_duration.as_secs_f64();
-            println!(
-                "WARNING: OVER TIME BUDGET BY {:.2}%)",
-                (elapsed_time / target_time) - 1.0
-            );
+            //println!(
+            //    "WARNING: OVER TIME BUDGET BY {:.2}%)",
+            //    (elapsed_time / target_time) - 1.0
+            //);
         } else {
             // waste time
             // reason added: this is much more accurate than a call to `std::thread::sleep`
@@ -80,8 +81,8 @@ fn main() -> std::result::Result<(), std::string::String> {
             while frame_start_time.elapsed() < target_frame_duration {}
         }
 
-        println!("FPS: {:.2}", 1.0 / frame_start_time.elapsed().as_secs_f64());
-        dbg!(frame_start_time.elapsed().as_micros());
+        //println!("FPS: {:.2}", 1.0 / frame_start_time.elapsed().as_secs_f64());
+        //dbg!(frame_start_time.elapsed().as_micros());
     }
 
     Ok(())

@@ -1,3 +1,4 @@
+extern crate gl;
 extern crate sdl2;
 
 use std::result::Result;
@@ -26,7 +27,23 @@ fn main() -> Result<(), String> {
 
     let mut events = sdl_context.event_pump()?;
 
+    let target_fps = 30.0;
+    let target_frame_duration = std::time::Duration::from_secs_f64(1.0 / target_fps);
+
+    let colors = [
+        sdl2::pixels::Color::RGB(255, 0, 0),
+        sdl2::pixels::Color::RGB(255, 255, 0),
+        sdl2::pixels::Color::RGB(0, 255, 0),
+        sdl2::pixels::Color::RGB(0, 255, 255),
+        sdl2::pixels::Color::RGB(0, 0, 255),
+        sdl2::pixels::Color::RGB(255, 0, 255),
+    ];
+    let mut color_cycler = colors.iter().cycle();
+
+
     'main: loop {
+        let frame_start_time = std::time::Instant::now();
+
         for event in events.poll_iter() {
             match event {
                 sdl2::event::Event::Quit { .. } => break 'main,
@@ -37,6 +54,24 @@ fn main() -> Result<(), String> {
                 _ => {}
             }
         }
+
+        canvas.set_draw_color(*color_cycler.next().unwrap());
+        canvas.clear();
+        canvas.present();
+
+        // wait out the frame
+        if frame_start_time.elapsed() > target_frame_duration {
+            let elapsed_time = frame_start_time.elapsed().as_secs_f64();
+            let target_time = target_frame_duration.as_secs_f64();
+            println!(
+                "WARNING: OVER TIME BUDGET BY {:.2}%)",
+                (elapsed_time / target_time) - 1.0
+            );
+        } else {
+            // waste time: `while` loop more accurate than `std::thread::sleep`
+            while frame_start_time.elapsed() < target_frame_duration {}
+        }
+        // TODO: render FPS to screen
     }
 
     Ok(())

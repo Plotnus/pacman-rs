@@ -5,6 +5,7 @@ authors = ["plot <plotnus@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+gl = "*"
 rand = "0.6.5"
 cgmath = "0.17.0"
 

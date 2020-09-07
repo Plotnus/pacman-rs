@@ -12,3 +12,4 @@
 [ ] RENDERING: the window size shouldn't depend on the board size. fix it.
 [ ] RENDERING: Sort out `render` section of code. We want to render once per frame.
 [ ] RENDERING: switch to SDL2 and draw to canvas
+[ ] RENDERING: adjustable screen size, minimum is traditional pixel size
