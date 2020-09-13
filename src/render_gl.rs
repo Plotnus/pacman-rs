@@ -7,7 +7,7 @@ pub struct GlProgram {
 }
 
 impl GlProgram {
-    pub fn from_shaders(shaders: &[Shader]) -> Result<GlProgram, String> {
+    pub fn from_shaders(shaders: &[GlShader]) -> Result<GlProgram, String> {
         let program_handle = unsafe { gl::CreateProgram() };
         for shader in shaders {
             unsafe {
@@ -65,12 +65,12 @@ impl Drop for GlProgram {
     }
 }
 
-pub struct Shader {
+pub struct GlShader {
     pub h: gl::types::GLuint,
 }
 
-impl Shader {
-    pub fn from_source(source: &CStr, shader_type: gl::types::GLuint) -> Result<Shader, String> {
+impl GlShader {
+    pub fn from_source(source: &CStr, shader_type: gl::types::GLuint) -> Result<GlShader, String> {
         let shader_handle = unsafe { gl::CreateShader(shader_type) };
 
         unsafe {
@@ -120,11 +120,11 @@ impl Shader {
             return Err(error_msg);
         }
 
-        Ok(Shader { h: shader_handle })
+        Ok(GlShader { h: shader_handle })
     }
 }
 
-impl Drop for Shader {
+impl Drop for GlShader {
     fn drop(&mut self) {
         unsafe {
             gl::DeleteShader(self.h);
