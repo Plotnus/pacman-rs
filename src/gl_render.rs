@@ -18,7 +18,7 @@ impl GlProgram {
         let program_handle = unsafe { gl::CreateProgram() };
         for shader in shaders {
             unsafe {
-                gl::AttachShader(program_handle, shader.h);
+                gl::AttachShader(program_handle, shader.handle);
             }
         }
 
@@ -34,6 +34,7 @@ impl GlProgram {
             status
         };
 
+        // handle case where link failed
         if link_status == 0 {
             let error_msg = {
                 let gl_log_len = {
@@ -73,7 +74,7 @@ impl Drop for GlProgram {
 }
 
 pub struct GlShader {
-    pub h: gl::types::GLuint,
+    pub handle: gl::types::GLuint,
 }
 
 impl GlShader {
@@ -131,14 +132,14 @@ impl GlShader {
             return Err(error_msg);
         }
 
-        Ok(GlShader { h: shader_handle })
+        Ok(GlShader { handle: shader_handle })
     }
 }
 
 impl Drop for GlShader {
     fn drop(&mut self) {
         unsafe {
-            gl::DeleteShader(self.h);
+            gl::DeleteShader(self.handle);
         }
     }
 }
