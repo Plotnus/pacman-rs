@@ -1,7 +1,8 @@
 extern crate gl;
 extern crate sdl2;
+pub mod render_gl;
 
-use std::ffi::{CStr, CString};
+//use std::ffi::{CStr, CString};
 
 use std::result::Result;
 use std::string::String;
@@ -89,65 +90,4 @@ fn main() -> Result<(), String> {
     }
 
     Ok(())
-}
-
-fn _shader_from_source(
-    source: &CStr,
-    shader_type: gl::types::GLuint,
-) -> Result<gl::types::GLuint, String> {
-    let shader_handle = unsafe { gl::CreateShader(shader_type) };
-
-    unsafe {
-        // set shader source
-        gl::ShaderSource(shader_handle, 1, &source.as_ptr(), std::ptr::null());
-
-        // compile the shader
-        gl::CompileShader(shader_handle);
-    }
-
-    let mut did_compilation_succeed: gl::types::GLint = 0;
-    unsafe {
-        gl::GetShaderiv(
-            shader_handle,
-            gl::COMPILE_STATUS,
-            &mut did_compilation_succeed,
-        );
-    }
-
-    let did_compilation_succeed = unsafe {
-        let mut status = 0;
-        gl::GetShaderiv(shader_handle, gl::COMPILE_STATUS, &mut status);
-        status != 0
-    };
-
-    if !did_compilation_succeed {
-        // gl error buffer contents -> String
-        let gl_log_length = unsafe {
-            let mut gl_log_length: gl::types::GLint = 0;
-            gl::GetShaderiv(shader_handle, gl::INFO_LOG_LENGTH, &mut gl_log_length);
-            gl_log_length as usize
-        };
-
-        let error_msg: String = unsafe {
-            let error_msg: CString = {
-                let mut buffer: Vec<u8> = vec![b' '; gl_log_length + 1];
-                buffer[gl_log_length] = 0;
-                CString::from_vec_unchecked(buffer)
-            };
-
-            // populate the message
-            gl::GetShaderInfoLog(
-                shader_handle,
-                gl_log_length as gl::types::GLint,
-                std::ptr::null_mut(),
-                error_msg.as_ptr() as *mut gl::types::GLchar,
-            );
-
-            error_msg.to_string_lossy().into_owned()
-        };
-
-        return Err(error_msg);
-    }
-
-    Ok(shader_handle)
 }
