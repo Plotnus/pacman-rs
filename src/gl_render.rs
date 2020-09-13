@@ -59,6 +59,12 @@ impl GlProgram {
             return Err(error_msg);
         };
 
+        // detatch the shader after linking so they can be freed
+        // TODO: do we 'leak' when there is an error? AKA always linked?
+        for shader in shaders {
+            unsafe { gl::DetachShader(program_handle, shader.handle); }
+        }
+
         Ok(GlProgram {
             handle: program_handle,
         })
