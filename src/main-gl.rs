@@ -44,6 +44,18 @@ fn main() -> Result<(), String> {
     ];
     let mut color_cycler = colors.iter().cycle();
 
+    ////////////////////////////////////////// 
+    // Compile Shaders & Link programs
+    // TODO: have a step for reading the files instead of just using `include_str!
+    let vert_source = include_str!("shaders/triangle.vert");
+    let vert_shader = gl_render::GlShader::from_source(vert_source, gl::VERTEX_SHADER)?;
+
+    let frag_source = include_str!("shaders/triangle.frag");
+    let frag_shader = gl_render::GlShader::from_source(frag_source, gl::FRAGMENT_SHADER)?;
+
+    let shader_program = gl_render::GlProgram::from_shaders(&[vert_shader, frag_shader])?;
+    gl_render::use_program(&shader_program);
+
     'main: loop {
         let frame_start_time = std::time::Instant::now();
 
