@@ -1,6 +1,6 @@
 extern crate gl;
 extern crate sdl2;
-pub mod render_gl;
+pub mod gl_render;
 
 //use std::ffi::{CStr, CString};
 
