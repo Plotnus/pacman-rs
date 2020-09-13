@@ -56,6 +56,52 @@ fn main() -> Result<(), String> {
     let shader_program = gl_render::GlProgram::from_shaders(&[vert_shader, frag_shader])?;
     gl_render::use_program(&shader_program);
 
+    ///////////////////////////////////////// 
+    // Rendering Data for VBO etc
+    let vertices: Vec<f32> = vec![
+        -0.5, -0.5, 0.0,
+        0.5, -0.5, 0.0,
+        0.0, 0.5, 0.0,
+    ];
+    // create and setup the vertex buffer object
+    let vbo_handle: gl::types::GLuint = unsafe {
+        let mut vbo_handle: gl::types::GLuint = 0;
+        gl::GenBuffers(1, &mut vbo_handle);
+        gl::BindBuffer(gl::ARRAY_BUFFER, vbo_handle);
+        gl::BufferData(
+            gl::ARRAY_BUFFER, //target
+            (vertices.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr,  //size
+            vertices.as_ptr() as *const gl::types::GLvoid, //data
+            gl::STATIC_DRAW,  //usage
+        );
+
+        // unbind the buffer
+        gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+        vbo_handle
+    };
+    // create and setup a vertex arary object aka DataLayout
+    let vao_handle: gl::types::GLuint = unsafe {
+        let mut vao_handle: gl::types::GLuint = 0;
+        gl::GenVertexArrays(1, &mut vao_handle);
+        gl::BindVertexArray(vao_handle);
+        gl::BindBuffer(gl::ARRAY_BUFFER, vbo_handle);
+        gl::EnableVertexAttribArray(0); // this is `layout (location = 0)` in vertex.shader
+        gl::VertexAttribPointer(
+            0, // index of the vertex attribute  `layout (location = 0)`
+            3, // number of components per attribute
+            gl::FLOAT, // data type
+            gl::FALSE, // normalized
+            (3 * std::mem::size_of::<f32>()) as gl::types::GLint, // stride
+            std::ptr::null(), // initial offest
+        );
+        gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+        gl::BindVertexArray(0);
+        vao_handle
+    };
+
+
+
+
     'main: loop {
         let frame_start_time = std::time::Instant::now();
 
@@ -75,6 +121,7 @@ fn main() -> Result<(), String> {
         // UPDATE
         //////////////////////////////////////////
         // RENDER
+        // clear background
         unsafe {
             let color = color_cycler.next().unwrap();
             let r = color.r as f32 / 255.0;
@@ -84,6 +131,19 @@ fn main() -> Result<(), String> {
             gl::ClearColor(r, g, b, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
         }
+        // draw triangle
+        gl_render::use_program(&shader_program);
+        unsafe {
+            gl::BindVertexArray(vao_handle);
+            gl::DrawArrays(
+                gl::TRIANGLES, // mode
+                0, // starting index
+                3, // number of elements to render
+            );
+        }
+
+
+
         sdl_window.gl_swap_window();
 
         // wait out the frame
