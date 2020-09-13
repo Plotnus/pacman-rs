@@ -1,6 +1,13 @@
 use gl;
 use std;
-use std::ffi::{CStr, CString};
+use std::ffi::{CString};
+
+pub fn use_program(program: &GlProgram) {
+    // TODO: add error handling
+    unsafe {
+        gl::UseProgram(program.handle);
+    }
+}
 
 pub struct GlProgram {
     pub handle: gl::types::GLuint,
@@ -70,14 +77,18 @@ pub struct GlShader {
 }
 
 impl GlShader {
-    pub fn from_source(source: &CStr, shader_type: gl::types::GLuint) -> Result<GlShader, String> {
+    pub fn from_source(source: &str, shader_type: gl::types::GLuint) -> Result<GlShader, String> {
         let shader_handle = unsafe { gl::CreateShader(shader_type) };
 
         unsafe {
-            // set shader source
-            gl::ShaderSource(shader_handle, 1, &source.as_ptr(), std::ptr::null());
-
-            // compile the shader
+            let len: gl::types::GLint = source.len() as gl::types::GLint;
+            let src_ptr = source.as_ptr() as *const gl::types::GLchar;
+            gl::ShaderSource(
+                shader_handle,
+                1,
+                &src_ptr as *const *const gl::types::GLchar,
+                & len,
+            );
             gl::CompileShader(shader_handle);
         }
 
