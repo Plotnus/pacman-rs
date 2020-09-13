@@ -1,6 +1,6 @@
 use gl;
 use std;
-use std::ffi::{CString};
+use std::ffi::CString;
 
 pub fn use_program(program: &GlProgram) {
     // TODO: add error handling
